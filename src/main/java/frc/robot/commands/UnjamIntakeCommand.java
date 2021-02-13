@@ -5,6 +5,7 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.Constants;
 import frc.robot.subsystems.*;
 
 public class UnjamIntakeCommand extends CommandBase {
@@ -26,7 +27,7 @@ public class UnjamIntakeCommand extends CommandBase {
     // Called repeatedly when this Command is scheduled to run
     @Override
     public void execute() {
-        m_intake.runIntake(0.75);
+        m_intake.runIntake(Constants.kUnjamIntakeSpeed);
     }
 
      // Called once after isFinished returns true

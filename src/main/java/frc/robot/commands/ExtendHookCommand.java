@@ -5,6 +5,7 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.Constants;
 import frc.robot.subsystems.*;
 
 public class ExtendHookCommand extends CommandBase {
@@ -25,7 +26,7 @@ public class ExtendHookCommand extends CommandBase {
     // Called repeatedly when this Command is scheduled to run
     @Override
     public void execute() {
-        m_hook.runHook(0.25);
+        m_hook.runHook(Constants.kExtendHookSpeed);
     }
 
     // Called once after isFinished returns true

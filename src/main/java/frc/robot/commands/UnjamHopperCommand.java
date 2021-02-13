@@ -5,6 +5,7 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.Constants;
 import frc.robot.subsystems.*;
 
 public class UnjamHopperCommand extends CommandBase {
@@ -25,7 +26,7 @@ public class UnjamHopperCommand extends CommandBase {
     // Called repeatedly when this Command is scheduled to run
     @Override
     public void execute() {
-        m_hopper.setMotorSpeed(0.75);
+        m_hopper.setMotorSpeed(Constants.kUnjamHopperSpeed);
     }
 
     // Make this return true when this Command no longer needs to run execute()

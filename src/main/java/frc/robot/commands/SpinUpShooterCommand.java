@@ -5,6 +5,7 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.Constants;
 import frc.robot.subsystems.*;
 
 public class SpinUpShooterCommand extends CommandBase {
@@ -26,7 +27,7 @@ public class SpinUpShooterCommand extends CommandBase {
     // Called repeatedly when this Command is scheduled to run
     @Override
     public void execute() {
-       m_shooter.setmotorspeed(0.64);
+       m_shooter.setmotorspeed(Constants.kSpinShooterSpeed);
     }
 
     // Called once after isFinished returns true
