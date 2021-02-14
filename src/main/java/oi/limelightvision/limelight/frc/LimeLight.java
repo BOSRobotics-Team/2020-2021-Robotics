@@ -14,7 +14,7 @@ import oi.limelightvision.limelight.frc.ControlMode.*;
 public class LimeLight {
 
     private NetworkTable m_table;
-    private String m_tableName;
+    private String m_tableName = "limelight";
     private Boolean isConnected = false;
     private double _hearBeatPeriod = 0.1;
 
@@ -40,7 +40,6 @@ public class LimeLight {
      * Using the Default Lime Light NT table
      */
     public LimeLight() {
-        m_tableName = "limelight";
         m_table = NetworkTableInstance.getDefault().getTable(m_tableName);
         _hearBeat.startPeriodic(_hearBeatPeriod);
     }
@@ -87,8 +86,7 @@ public class LimeLight {
      */
     public double getdegRotationToTarget() {
         NetworkTableEntry tx = m_table.getEntry("tx");
-        double x = tx.getDouble(0.0);
-        return x;
+        return tx.getDouble(0.0);
     }
     /**
      * ty Vertical Offset From Crosshair To Target (-20.5 degrees to 20.5 degrees)
@@ -96,8 +94,7 @@ public class LimeLight {
      */
     public double getdegVerticalToTarget() {
         NetworkTableEntry ty = m_table.getEntry("ty");
-        double y = ty.getDouble(0.0);
-        return y;
+        return ty.getDouble(0.0);
     }
     /**
      * ta Target Area (0% of image to 100% of image)
@@ -105,8 +102,7 @@ public class LimeLight {
      */
     public double getTargetArea() {
         NetworkTableEntry ta = m_table.getEntry("ta");
-        double a = ta.getDouble(0.0);
-        return a;
+        return ta.getDouble(0.0);
     }
     /**
      * ts Skew or rotation (-90 degrees to 0 degrees)
@@ -114,8 +110,7 @@ public class LimeLight {
      */
     public double getSkew_Rotation() {
         NetworkTableEntry ts = m_table.getEntry("ts");
-        double s = ts.getDouble(0.0);
-        return s;
+        return ts.getDouble(0.0);
     }
     /**
      * tl The pipeline’s latency contribution (ms) Add at least 11ms for image capture latency.
@@ -123,8 +118,7 @@ public class LimeLight {
      */
     public double getPipelineLatency() {
         NetworkTableEntry tl = m_table.getEntry("tl");
-        double l = tl.getDouble(0.0);
-        return l;
+        return tl.getDouble(0.0);
     }
 
     private void resetPilelineLatency(){

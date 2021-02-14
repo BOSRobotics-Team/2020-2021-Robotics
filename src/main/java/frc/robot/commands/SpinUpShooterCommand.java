@@ -1,37 +1,44 @@
+// Copyright (c) FIRST and other WPILib contributors.
+// Open Source Software; you can modify and/or share it under the terms of
+// the WPILib BSD license file in the root directory of this project.
+
 package frc.robot.commands;
 
-import edu.wpi.first.wpilibj.command.Command;
-import frc.robot.Robot;
+import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.Constants;
+import frc.robot.subsystems.*;
 
-public class SpinUpShooterCommand extends Command {
+public class SpinUpShooterCommand extends CommandBase {
+@SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
+    private final Shooter m_shooter;
 
-    public SpinUpShooterCommand() {
-        requires(Robot.shooter);
+    public SpinUpShooterCommand(Shooter shooter) {
+        m_shooter = shooter;
+
+        addRequirements(m_shooter);
     }
 
     // Called just before this Command runs the first time
-    protected void initialize() {
+    @Override
+    public void initialize() {
        
     }
 
     // Called repeatedly when this Command is scheduled to run
-    protected void execute() {
-       Robot.shooter.setmotorspeed(0.64);
-    }
-
-    // Make this return true when this Command no longer needs to run execute()
-    protected boolean isFinished() {
-        return false;
+    @Override
+    public void execute() {
+       m_shooter.setmotorspeed(Constants.kSpinShooterSpeed);
     }
 
     // Called once after isFinished returns true
-    protected void end() {
+    @Override
+    public void end(boolean interrupted) {
        
     }
 
-    // Called when another command which requires one or more of the same
-    // subsystems is scheduled to run
-    protected void interrupted() {
-       end();
+    // Make this return true when this Command no longer needs to run execute()
+    @Override
+    public boolean isFinished() {
+        return false;
     }
 }
