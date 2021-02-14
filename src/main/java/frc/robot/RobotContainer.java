@@ -87,6 +87,8 @@ public class RobotContainer {
     // Configure the button bindings
     configureButtonBindings();
 
+    driveTrain.setDefaultCommand(m_cmdDriveTrainCommand);
+    
     // Add commands to Autonomous Sendable Chooser
     chooser.setDefaultOption("Autonomous Command", m_autoCommand);
 
