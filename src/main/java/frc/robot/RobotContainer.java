@@ -62,7 +62,9 @@ public class RobotContainer {
   public final JoystickButton right_Bumper_Driver = new JoystickButton(driverController, 6);
   public final JoystickButton back_Button_Driver = new JoystickButton(driverController, 7);
   public final JoystickButton start_Button_Driver = new JoystickButton(driverController, 8);
-
+  public final JoystickButton left_Stick_Driver = new JoystickButton(driverController, 9);
+  public final JoystickButton right_Stick_Driver = new JoystickButton(driverController, 10);
+  
   //Operator Controller
   public final XboxController operatorController = new XboxController(1);
   public final JoystickButton a_Button_Operator = new JoystickButton(operatorController, 1);
@@ -73,7 +75,9 @@ public class RobotContainer {
   public final JoystickButton right_Bumper_Operator = new JoystickButton(operatorController, 6);
   public final JoystickButton back_Button_Operator = new JoystickButton(operatorController, 7);
   public final JoystickButton start_Button_Operator = new JoystickButton(operatorController, 8);
-
+  public final JoystickButton left_Stick_Operator = new JoystickButton(operatorController, 9);
+  public final JoystickButton right_Stick_Operator = new JoystickButton(operatorController, 10);
+  
   //Camera
   public final LimeLight limeLight = new LimeLight();
   public final UsbCamera cam0; 
