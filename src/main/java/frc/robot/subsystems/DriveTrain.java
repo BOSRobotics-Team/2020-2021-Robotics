@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
@@ -23,10 +24,6 @@ import com.kauailabs.navx.frc.AHRS;
 public class DriveTrain extends SubsystemBase {
 
     private final int kCountsPerRev = 2048;  //Encoder counts per revolution of the motor shaft.
-    private final double kGearRatio = 10.71;
-    private final double kWheelRadiusInches = 3;
-    private final double kLengthChassisMeters = 1.0;
-    private final int k100msPerSecond = 10;
 
     private final AHRS navx_device = new AHRS();
 
@@ -217,14 +214,14 @@ public class DriveTrain extends SubsystemBase {
 		talonFXLeft.config_kI(0, ki, 0);
 		talonFXLeft.config_kD(0, kd, 0);
 		talonFXLeft.config_kF(0, kf, 0);
-		talonFXLeft.config_IntegralZone(0, (int)kLengthChassisMeters, 30);
+		talonFXLeft.config_IntegralZone(0, (int)Constants.kLengthChassisMeters, 30);
 		talonFXLeft.configMaxIntegralAccumulator(0, maxIntegral, 0);
 
 		talonFXRight.config_kP(0, kp, 0);
 		talonFXRight.config_kI(0, ki, 0);
 		talonFXRight.config_kD(0, kd, 0);
 		talonFXRight.config_kF(0, kf, 0);
-		talonFXRight.config_IntegralZone(0, (int)kLengthChassisMeters, 30);
+		talonFXRight.config_IntegralZone(0, (int)Constants.kLengthChassisMeters, 30);
 		talonFXRight.configMaxIntegralAccumulator(0, maxIntegral, 0);
     }
     
@@ -236,26 +233,26 @@ public class DriveTrain extends SubsystemBase {
     public void driveTank(double leftSpeed, double rightSpeed) {
         differentialDrive1.tankDrive(leftSpeed, rightSpeed);
     }
-
+/*
     private int distanceToNativeUnits(double positionMeters) {
-        double wheelRotations = positionMeters/(2 * Math.PI * Units.inchesToMeters(kWheelRadiusInches));
-        double motorRotations = wheelRotations * kGearRatio;
+        double wheelRotations = positionMeters/(2 * Math.PI * Units.inchesToMeters(Constants.kWheelRadiusInches));
+        double motorRotations = wheelRotations * Constants.kGearRatio;
         int sensorCounts = (int)(motorRotations * kCountsPerRev);
         return sensorCounts;
     }
     
     private int velocityToNativeUnits(double velocityMetersPerSecond) {
-        double wheelRotationsPerSecond = velocityMetersPerSecond/(2 * Math.PI * Units.inchesToMeters(kWheelRadiusInches));
-        double motorRotationsPerSecond = wheelRotationsPerSecond * kGearRatio;
-        double motorRotationsPer100ms = motorRotationsPerSecond / k100msPerSecond;
+        double wheelRotationsPerSecond = velocityMetersPerSecond/(2 * Math.PI * Units.inchesToMeters(Constants.kWheelRadiusInches));
+        double motorRotationsPerSecond = wheelRotationsPerSecond * Constants.kGearRatio;
+        double motorRotationsPer100ms = motorRotationsPerSecond / Constants.k100msPerSecond;
         int sensorCountsPer100ms = (int)(motorRotationsPer100ms * kCountsPerRev);
         return sensorCountsPer100ms;
     }
-    
+*/    
     private double nativeUnitsToDistanceMeters(double sensorCounts) {
         double motorRotations = (double)sensorCounts / kCountsPerRev;
-        double wheelRotations = motorRotations / kGearRatio;
-        double positionMeters = wheelRotations * (2 * Math.PI * Units.inchesToMeters(kWheelRadiusInches));
+        double wheelRotations = motorRotations / Constants.kGearRatio;
+        double positionMeters = wheelRotations * (2 * Math.PI * Units.inchesToMeters(Constants.kWheelRadiusInches));
         return positionMeters;
     }
 }
