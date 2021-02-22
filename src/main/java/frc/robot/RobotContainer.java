@@ -116,6 +116,9 @@ public class RobotContainer {
   private void configureButtonBindings() {
     a_Button_Driver.whileHeld(m_unJamIntakeCommand);    
     left_Bumper_Driver.whileHeld(m_intakeCommand);
+    right_Bumper_Driver.whenPressed(() -> driveTrain.setMaxOutput(0.5))
+                       .whenReleased(() -> driveTrain.setMaxOutput(1.0));
+    back_Button_Driver.whenPressed(() -> m_cmdDriveTrainCommand.toggleDriveMode());
 
     a_Button_Operator.whileHeld(m_extendHookCommand);
     b_Button_Operator.whileHeld(m_retractHookCommand);

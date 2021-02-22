@@ -40,28 +40,16 @@ public class CommandDriveTrain extends CommandBase {
     // Called repeatedly when this Command is scheduled to run
     @Override
     public void execute() {
-        if (m_controller.getBackButtonPressed()) {
-            switch (m_Mode) {
-                case ARCADE: 
-                    m_Mode = DriveMode.TANK;
-                    break;
-                case TANK:
-                    m_Mode = DriveMode.ARCADE;
-                    break;
-                default:
-                    m_Mode = DriveMode.ARCADE;
-                    break;
-            }
-        }
         if (m_Mode == DriveMode.ARCADE) {
             m_driveTrain.driveArcade(-m_controller.getY(Hand.kLeft), m_controller.getX(Hand.kRight), true);
         } else if (m_Mode == DriveMode.TANK) {
-            m_driveTrain.driveTank(-m_controller.getY(Hand.kLeft), m_controller.getY(Hand.kRight));
+            m_driveTrain.driveTank(m_controller.getY(Hand.kLeft), m_controller.getY(Hand.kRight));
+        } else if (m_Mode == DriveMode.CURVATURE) {
+            m_driveTrain.driveCurvature(m_controller.getY(Hand.kLeft), m_controller.getY(Hand.kRight), m_controller.getStickButton(Hand.kLeft));
         }
+        SmartDashboard.putString(  "DriveTrainMode",   m_Mode.toString());
 
         m_driveTrain.logPeriodic();
-
-        SmartDashboard.putString(  "DriveTrainMode",   m_Mode.toString());
     }
 
     // Called once after isFinished returns true
@@ -75,5 +63,22 @@ public class CommandDriveTrain extends CommandBase {
    @Override
    public boolean isFinished() {
        return false;
-   }
+    }
+    
+    public DriveMode getDriveMode() {
+        return m_Mode;
+    }
+
+    public void setDriveMode(DriveMode mode) {
+        m_Mode = mode;
+    }
+ 
+    public void toggleDriveMode() {
+        switch (getDriveMode()) {
+            case ARCADE:    setDriveMode(DriveMode.TANK);       break;
+            case TANK:      setDriveMode(DriveMode.CURVATURE);  break;
+            case CURVATURE: setDriveMode(DriveMode.ARCADE);     break;
+            default:    break;
+        }
+    }
 }

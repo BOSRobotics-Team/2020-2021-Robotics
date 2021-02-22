@@ -6,6 +6,8 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Instrumentation;
+import frc.robot.commands.CommandDriveTrain.DriveMode;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
@@ -17,6 +19,9 @@ import edu.wpi.first.wpilibj.util.Units;
 import com.ctre.phoenix.motorcontrol.Faults;
 import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
+import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
+import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.kauailabs.navx.frc.AHRS;
 
@@ -37,6 +42,8 @@ public class DriveTrain extends SubsystemBase {
     private final Field2d m_field = new Field2d();
     private final Faults faultsLeft = new Faults();
     private final Faults faultsRight = new Faults();
+    /* Used to build string throughout loop */
+	private final StringBuilder _sb = new StringBuilder();
 
     public DriveTrain() {
         talonFXLeft.configFactoryDefault();
@@ -47,8 +54,57 @@ public class DriveTrain extends SubsystemBase {
         talonFXLeftFollower.follow(talonFXLeft);
         talonFXRightFollower.follow(talonFXRight);
 
+		/* Configure Sensor Source for Primary PID */
+        talonFXLeft.configSelectedFeedbackSensor(TalonFXFeedbackDevice.IntegratedSensor, Constants.kPIDLoopIdx, Constants.kTimeoutMs);
+        talonFXRight.configSelectedFeedbackSensor(TalonFXFeedbackDevice.IntegratedSensor, Constants.kPIDLoopIdx, Constants.kTimeoutMs);
+
+        /* set deadband to super small 0.001 (0.1 %). The default deadband is 0.04 (4 %) */
+        talonFXLeft.configNeutralDeadband(0.001, Constants.kTimeoutMs);
+        talonFXRight.configNeutralDeadband(0.001, Constants.kTimeoutMs);
+
+ 		/**
+		 * Configure Talon FX Output and Sesnor direction accordingly Invert Motor to
+		 * have green LEDs when driving Talon Forward / Requesting Postive Output Phase
+		 * sensor to have positive increment when driving Talon Forward (Green LED)
+		 * Talon FX does not need sensor phase set for its integrated sensor
+		 * This is because it will always be correct if the selected feedback device is integrated sensor (default value)
+		 * and the user calls getSelectedSensor* to get the sensor's position/velocity.
+         */
+        talonFXLeft.setSensorPhase(false);
+        talonFXRight.setSensorPhase(false);
         //talonFXLeft.setInverted(TalonFXInvertType.CounterClockwise); // !< Update this
         //talonFXRight.setInverted(TalonFXInvertType.Clockwise); // !< Update this
+
+     	/* Set relevant frame periods to be at least as fast as periodic rate */
+        talonFXLeft.setStatusFramePeriod(StatusFrameEnhanced.Status_13_Base_PIDF0, 10, Constants.kTimeoutMs);
+        talonFXLeft.setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 10, Constants.kTimeoutMs);
+        talonFXRight.setStatusFramePeriod(StatusFrameEnhanced.Status_13_Base_PIDF0, 10, Constants.kTimeoutMs);
+        talonFXRight.setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 10, Constants.kTimeoutMs);
+        
+        /* Set the peak and nominal outputs */
+		talonFXLeft.configNominalOutputForward(0, Constants.kTimeoutMs);
+		talonFXLeft.configNominalOutputReverse(0, Constants.kTimeoutMs);
+		talonFXLeft.configPeakOutputForward(1, Constants.kTimeoutMs);
+		talonFXLeft.configPeakOutputReverse(-1, Constants.kTimeoutMs);
+		talonFXRight.configNominalOutputForward(0, Constants.kTimeoutMs);
+		talonFXRight.configNominalOutputReverse(0, Constants.kTimeoutMs);
+		talonFXRight.configPeakOutputForward(1, Constants.kTimeoutMs);
+		talonFXRight.configPeakOutputReverse(-1, Constants.kTimeoutMs);
+
+		/* Set Motion Magic gains in slot0 - see documentation */
+		talonFXLeft.selectProfileSlot(Constants.kSlotIdx, Constants.kPIDLoopIdx);
+        talonFXRight.selectProfileSlot(Constants.kSlotIdx, Constants.kPIDLoopIdx);
+        setClosedLoopGains(Constants.kGains.kP, Constants.kGains.kI, Constants.kGains.kD, Constants.kGains.kF, Constants.kLengthChassisMeters, 1.0);
+  
+   		/* Set acceleration and vcruise velocity - see documentation */
+        talonFXLeft.configMotionCruiseVelocity(15000, Constants.kTimeoutMs);
+        talonFXRight.configMotionCruiseVelocity(15000, Constants.kTimeoutMs);
+        talonFXLeft.configMotionAcceleration(6000, Constants.kTimeoutMs);
+        talonFXRight.configMotionAcceleration(6000, Constants.kTimeoutMs);
+
+           /* Zero the sensor once on robot boot up */
+        resetEncoders();
+
         talonFXLeftFollower.setInverted(InvertType.FollowMaster);
         talonFXRightFollower.setInverted(InvertType.FollowMaster);
 
@@ -56,7 +112,7 @@ public class DriveTrain extends SubsystemBase {
         differentialDrive1.setSafetyEnabled(true);
         differentialDrive1.setExpiration(0.1);
         differentialDrive1.setMaxOutput(0.75);
-        differentialDrive1.setDeadband(0.05);
+        differentialDrive1.setDeadband(0.02);
 
         SmartDashboard.putData("Field", m_field);
     }
@@ -138,6 +194,18 @@ public class DriveTrain extends SubsystemBase {
         /* Connectivity Debugging Support                                           */
         SmartDashboard.putNumber(  "IMU_Update_Count",     navx_device.getUpdateCount());
         SmartDashboard.putNumber(  "IMU_Byte_Count",       navx_device.getByteCount());
+
+        /* Prepare line to print */
+        _sb.append("\tOut%:");
+        _sb.append(talonFXLeft.getMotorOutputPercent());
+        _sb.append("\tVel:");
+        _sb.append(talonFXLeft.getSelectedSensorVelocity(Constants.kPIDLoopIdx));
+        /* Append more signals to print when in speed mode */
+        _sb.append("\terr:");
+        _sb.append(talonFXLeft.getClosedLoopError(Constants.kPIDLoopIdx));
+
+        /* Instrumentation */
+        Instrumentation.Process(talonFXLeft, _sb);
     }
 
     @Override
@@ -179,8 +247,8 @@ public class DriveTrain extends SubsystemBase {
     }
 
     public void resetEncoders() {
-        talonFXLeft.setSelectedSensorPosition(0, 0, 10);
-        talonFXRight.setSelectedSensorPosition(0, 0, 10);
+        talonFXLeft.setSelectedSensorPosition(0, Constants.kPIDLoopIdx, Constants.kTimeoutMs);
+        talonFXRight.setSelectedSensorPosition(0, Constants.kPIDLoopIdx, Constants.kTimeoutMs);
     }
 
     public double getAverageEncoderDistance() {
@@ -210,37 +278,45 @@ public class DriveTrain extends SubsystemBase {
     }
 
     public void setClosedLoopGains(double kp, double ki, double kd, double kf, double iZone, double maxIntegral) {
-		talonFXLeft.config_kP(0, kp, 0);
-		talonFXLeft.config_kI(0, ki, 0);
-		talonFXLeft.config_kD(0, kd, 0);
-		talonFXLeft.config_kF(0, kf, 0);
-		talonFXLeft.config_IntegralZone(0, (int)Constants.kLengthChassisMeters, 30);
-		talonFXLeft.configMaxIntegralAccumulator(0, maxIntegral, 0);
+		talonFXLeft.config_kP(Constants.kSlotIdx, kp, Constants.kTimeoutMs);
+		talonFXLeft.config_kI(Constants.kSlotIdx, ki, Constants.kTimeoutMs);
+		talonFXLeft.config_kD(Constants.kSlotIdx, kd, Constants.kTimeoutMs);
+		talonFXLeft.config_kF(Constants.kSlotIdx, kf, Constants.kTimeoutMs);
+		talonFXLeft.config_IntegralZone(Constants.kSlotIdx, (int)iZone, Constants.kTimeoutMs);
+		talonFXLeft.configMaxIntegralAccumulator(Constants.kSlotIdx, maxIntegral, Constants.kTimeoutMs);
 
-		talonFXRight.config_kP(0, kp, 0);
-		talonFXRight.config_kI(0, ki, 0);
-		talonFXRight.config_kD(0, kd, 0);
-		talonFXRight.config_kF(0, kf, 0);
-		talonFXRight.config_IntegralZone(0, (int)Constants.kLengthChassisMeters, 30);
-		talonFXRight.configMaxIntegralAccumulator(0, maxIntegral, 0);
+		talonFXRight.config_kP(Constants.kSlotIdx, kp, Constants.kTimeoutMs);
+		talonFXRight.config_kI(Constants.kSlotIdx, ki, Constants.kTimeoutMs);
+		talonFXRight.config_kD(Constants.kSlotIdx, kd, Constants.kTimeoutMs);
+		talonFXRight.config_kF(Constants.kSlotIdx, kf, Constants.kTimeoutMs);
+		talonFXRight.config_IntegralZone(Constants.kSlotIdx, (int)iZone, Constants.kTimeoutMs);
+		talonFXRight.configMaxIntegralAccumulator(Constants.kSlotIdx, maxIntegral, Constants.kTimeoutMs);
     }
     
     // Put methods for controlling this subsystem here. Call these from Commands.
     public void driveArcade(double speed, double rotation, boolean useSquares) {
         differentialDrive1.arcadeDrive(speed, rotation, useSquares);
     }
-    
     public void driveTank(double leftSpeed, double rightSpeed) {
         differentialDrive1.tankDrive(leftSpeed, rightSpeed);
     }
-/*
-    private int distanceToNativeUnits(double positionMeters) {
+    public void driveCurvature(double speed, double rotation, boolean quickTurn) {
+        differentialDrive1.curvatureDrive(speed, rotation, quickTurn);
+    }
+    public void driveToTarget(double meters) {
+			int targetPos = distanceMetersToNativeUnits(meters);
+
+            talonFXLeft.set(TalonFXControlMode.MotionMagic, targetPos);
+			talonFXRight.set(TalonFXControlMode.MotionMagic, targetPos);
+    }
+
+    private int distanceMetersToNativeUnits(double positionMeters) {
         double wheelRotations = positionMeters/(2 * Math.PI * Units.inchesToMeters(Constants.kWheelRadiusInches));
         double motorRotations = wheelRotations * Constants.kGearRatio;
         int sensorCounts = (int)(motorRotations * kCountsPerRev);
         return sensorCounts;
     }
-    
+/*    
     private int velocityToNativeUnits(double velocityMetersPerSecond) {
         double wheelRotationsPerSecond = velocityMetersPerSecond/(2 * Math.PI * Units.inchesToMeters(Constants.kWheelRadiusInches));
         double motorRotationsPerSecond = wheelRotationsPerSecond * Constants.kGearRatio;
