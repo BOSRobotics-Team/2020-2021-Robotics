@@ -31,8 +31,8 @@ public class DriveTrain extends SubsystemBase {
 
     private final AHRS navx_device = new AHRS();
 
-    private final WPI_TalonFX talonFXLeft = new WPI_TalonFX(13);
-    private final WPI_TalonFX talonFXRight = new WPI_TalonFX(14);
+    public final WPI_TalonFX talonFXLeft = new WPI_TalonFX(13);
+    public final WPI_TalonFX talonFXRight = new WPI_TalonFX(14);
     private final WPI_TalonFX talonFXLeftFollower = new WPI_TalonFX(15);
     private final WPI_TalonFX talonFXRightFollower = new WPI_TalonFX(12);
 
@@ -61,8 +61,8 @@ public class DriveTrain extends SubsystemBase {
         talonFXRight.configSelectedFeedbackSensor(TalonFXFeedbackDevice.IntegratedSensor, Constants.kPIDLoopIdx, Constants.kTimeoutMs);
 
         /* set deadband to super small 0.001 (0.1 %). The default deadband is 0.04 (4 %) */
-        talonFXLeft.configNeutralDeadband(0.001, Constants.kTimeoutMs);
-        talonFXRight.configNeutralDeadband(0.001, Constants.kTimeoutMs);
+        talonFXLeft.configNeutralDeadband(Constants.kNeutralDeadband, Constants.kTimeoutMs);
+        talonFXRight.configNeutralDeadband(Constants.kNeutralDeadband, Constants.kTimeoutMs);
 
  		/**
 		 * Configure Talon FX Output and Sesnor direction accordingly Invert Motor to
@@ -72,8 +72,8 @@ public class DriveTrain extends SubsystemBase {
 		 * This is because it will always be correct if the selected feedback device is integrated sensor (default value)
 		 * and the user calls getSelectedSensor* to get the sensor's position/velocity.
          */
-        talonFXLeft.setSensorPhase(false);
-        talonFXRight.setSensorPhase(false);
+        //talonFXLeft.setSensorPhase(false);
+        //talonFXRight.setSensorPhase(false);
         //talonFXLeft.setInverted(TalonFXInvertType.CounterClockwise); // !< Update this
         //talonFXRight.setInverted(TalonFXInvertType.Clockwise); // !< Update this
 
