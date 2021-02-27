@@ -5,9 +5,6 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
-import frc.robot.Instrumentation;
-import frc.robot.commands.CommandDriveTrain.DriveMode;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
@@ -25,6 +22,8 @@ import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.kauailabs.navx.frc.AHRS;
 
+import frc.robot.Constants;
+import frc.robot.Instrumentation;
 
 public class DriveTrain extends SubsystemBase {
 
@@ -52,7 +51,10 @@ public class DriveTrain extends SubsystemBase {
         talonFXRightFollower.configFactoryDefault();
 
         talonFXLeftFollower.follow(talonFXLeft);
+        talonFXLeftFollower.setInverted(InvertType.FollowMaster);
+
         talonFXRightFollower.follow(talonFXRight);
+        talonFXRightFollower.setInverted(InvertType.FollowMaster);
 
 		/* Configure Sensor Source for Primary PID */
         talonFXLeft.configSelectedFeedbackSensor(TalonFXFeedbackDevice.IntegratedSensor, Constants.kPIDLoopIdx, Constants.kTimeoutMs);
@@ -77,9 +79,9 @@ public class DriveTrain extends SubsystemBase {
 
      	/* Set relevant frame periods to be at least as fast as periodic rate */
         talonFXLeft.setStatusFramePeriod(StatusFrameEnhanced.Status_13_Base_PIDF0, 10, Constants.kTimeoutMs);
-        talonFXLeft.setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 10, Constants.kTimeoutMs);
+        talonFXLeft.setStatusFramePeriod(StatusFrameEnhanced.Status_10_Targets, 10, Constants.kTimeoutMs);
         talonFXRight.setStatusFramePeriod(StatusFrameEnhanced.Status_13_Base_PIDF0, 10, Constants.kTimeoutMs);
-        talonFXRight.setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 10, Constants.kTimeoutMs);
+        talonFXRight.setStatusFramePeriod(StatusFrameEnhanced.Status_10_Targets, 10, Constants.kTimeoutMs);
         
         /* Set the peak and nominal outputs */
 		talonFXLeft.configNominalOutputForward(0, Constants.kTimeoutMs);
@@ -104,9 +106,6 @@ public class DriveTrain extends SubsystemBase {
 
            /* Zero the sensor once on robot boot up */
         resetEncoders();
-
-        talonFXLeftFollower.setInverted(InvertType.FollowMaster);
-        talonFXRightFollower.setInverted(InvertType.FollowMaster);
 
         addChild("Differential Drive 1",differentialDrive1);
         differentialDrive1.setSafetyEnabled(true);
@@ -309,7 +308,11 @@ public class DriveTrain extends SubsystemBase {
             talonFXLeft.set(TalonFXControlMode.MotionMagic, targetPos);
 			talonFXRight.set(TalonFXControlMode.MotionMagic, targetPos);
     }
-
+    public void tankDriveVolts(double leftVolts, double rightVolts) {
+        talonFXLeft.setVoltage(leftVolts);
+        talonFXRight.setVoltage(-rightVolts);
+        differentialDrive1.feed();
+    }
     private int distanceMetersToNativeUnits(double positionMeters) {
         double wheelRotations = positionMeters/(2 * Math.PI * Units.inchesToMeters(Constants.kWheelRadiusInches));
         double motorRotations = wheelRotations * Constants.kGearRatio;
