@@ -40,6 +40,7 @@ public class AutonomousCommand extends CommandBase {
         _robot = container;
         _driveTrain = _robot.driveTrain;
 
+        System.out.println("AutonomousCommand - constructor");
         //addParallel(container.m_spinupShooterCommand);
         //addSequential(container.m_runHopperAutoCommand);
     }
@@ -48,6 +49,7 @@ public class AutonomousCommand extends CommandBase {
     
     @Override
     public void initialize() {
+        System.out.println("AutonomousCommand - initialize");
 
         _driveTrain.driveTank(0, 0);
         _driveTrain.enableBrakes(true);
@@ -153,11 +155,13 @@ public class AutonomousCommand extends CommandBase {
     // Called repeatedly when this Command is scheduled to run
     @Override
     public void execute() {
+        System.out.println("AutonomousCommand - execute");
     }
 
     // Called once after isFinished returns true
     @Override
     public void end(boolean interrupted) {
+        System.out.println("AutonomousCommand - end");
     }
 
     // Make this return true when this Command no longer needs to run execute()
