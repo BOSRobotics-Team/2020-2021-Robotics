@@ -41,8 +41,6 @@ public class DriveTrain extends SubsystemBase {
     private final Field2d m_field = new Field2d();
     private final Faults faultsLeft = new Faults();
     private final Faults faultsRight = new Faults();
-    /* Used to build string throughout loop */
-	private final StringBuilder _sb = new StringBuilder();
 
     public DriveTrain() {
         talonFXLeft.configFactoryDefault();
@@ -124,87 +122,9 @@ public class DriveTrain extends SubsystemBase {
                       nativeUnitsToDistanceMeters(talonFXRight.getSelectedSensorPosition()));
         m_field.setRobotPose(m_odometry.getPoseMeters());
 
-        SmartDashboard.putBoolean( "IMU_Connected",        navx_device.isConnected());
-        SmartDashboard.putBoolean( "IMU_IsCalibrating",    navx_device.isCalibrating());
-        SmartDashboard.putNumber(  "IMU_Yaw",              navx_device.getYaw());
-        SmartDashboard.putNumber(  "IMU_Pitch",            navx_device.getPitch());
-        SmartDashboard.putNumber(  "IMU_Roll",             navx_device.getRoll());
-        
-        /* Display tilt-corrected, Magnetometer-based heading (requires magnetometer calibration to be useful)                                   */
-        SmartDashboard.putNumber(  "IMU_CompassHeading",   navx_device.getCompassHeading());
-
-        /* Display 9-axis Heading (requires magnetometer calibration to be useful)  */
-        SmartDashboard.putNumber(  "IMU_FusedHeading",     navx_device.getFusedHeading());
-
-        /* These functions are compatible w/the WPI Gyro Class */
-        SmartDashboard.putNumber(  "IMU_TotalYaw",         navx_device.getAngle());
-        SmartDashboard.putNumber(  "IMU_YawRateDPS",       navx_device.getRate());
-
-        /* Display Processed Acceleration Data (Linear Acceleration, Motion Detect) */
-        SmartDashboard.putNumber(  "IMU_Accel_X",          navx_device.getWorldLinearAccelX());
-        SmartDashboard.putNumber(  "IMU_Accel_Y",          navx_device.getWorldLinearAccelY());
-        SmartDashboard.putBoolean( "IMU_IsMoving",         navx_device.isMoving());
-        SmartDashboard.putBoolean( "IMU_IsRotating",       navx_device.isRotating());
-
-        /* Display estimates of velocity/displacement.  Note that these values are  */
-        /* not expected to be accurate enough for estimating robot position on a    */
-        /* FIRST FRC Robotics Field, due to accelerometer noise and the compounding */
-        /* of these errors due to single (velocity) integration and especially      */
-        /* double (displacement) integration.                                       */        SmartDashboard.putNumber(  "IMU_Temp_C",           navx_device.getTempC());
-        SmartDashboard.putNumber(  "Velocity_X",           navx_device.getVelocityX() );
-        SmartDashboard.putNumber(  "Velocity_Y",           navx_device.getVelocityY() );
-        SmartDashboard.putNumber(  "Displacement_X",       navx_device.getDisplacementX() );
-        SmartDashboard.putNumber(  "Displacement_Y",       navx_device.getDisplacementY() );
-        
-        /* Display Raw Gyro/Accelerometer/Magnetometer Values                       */
-        /* NOTE:  These values are not normally necessary, but are made available   */
-        /* for advanced users.  Before using this data, please consider whether     */
-        /* the processed data (see above) will suit your needs.                     */  
-        SmartDashboard.putNumber(   "RawGyro_X",           navx_device.getRawGyroX());
-        SmartDashboard.putNumber(   "RawGyro_Y",           navx_device.getRawGyroY());
-        SmartDashboard.putNumber(   "RawGyro_Z",           navx_device.getRawGyroZ());
-        SmartDashboard.putNumber(   "RawAccel_X",          navx_device.getRawAccelX());
-        SmartDashboard.putNumber(   "RawAccel_Y",          navx_device.getRawAccelY());
-        SmartDashboard.putNumber(   "RawAccel_Z",          navx_device.getRawAccelZ());
-        SmartDashboard.putNumber(   "RawMag_X",            navx_device.getRawMagX());
-        SmartDashboard.putNumber(   "RawMag_Y",            navx_device.getRawMagY());
-        SmartDashboard.putNumber(   "RawMag_Z",            navx_device.getRawMagZ());
-        SmartDashboard.putNumber(   "IMU_Temp_C",          navx_device.getTempC());
-        
-        /* Omnimount Yaw Axis Information                                           */
-        /* For more info, see http://navx-mxp.kauailabs.com/installation/omnimount  */
-        AHRS.BoardYawAxis yaw_axis = navx_device.getBoardYawAxis();
-        SmartDashboard.putString(  "YawAxisDirection",     yaw_axis.up ? "Up" : "Down" );
-        SmartDashboard.putNumber(  "YawAxis",              yaw_axis.board_axis.getValue());
-
-        /* Sensor Board Information                                                 */
-        SmartDashboard.putString(  "FirmwareVersion",      navx_device.getFirmwareVersion());
-
-        /* Quaternion Data                                                          */
-        /* Quaternions are fascinating, and are the most compact representation of  */
-        /* orientation data.  All of the Yaw, Pitch and Roll Values can be derived  */
-        /* from the Quaternions.  If interested in motion processing, knowledge of  */
-        /* Quaternions is highly recommended.                                       */
-        SmartDashboard.putNumber(  "QuaternionW",          navx_device.getQuaternionW());
-        SmartDashboard.putNumber(  "QuaternionX",          navx_device.getQuaternionX());
-        SmartDashboard.putNumber(  "QuaternionY",          navx_device.getQuaternionY());
-        SmartDashboard.putNumber(  "QuaternionZ",          navx_device.getQuaternionZ());
-
-        /* Connectivity Debugging Support                                           */
-        SmartDashboard.putNumber(  "IMU_Update_Count",     navx_device.getUpdateCount());
-        SmartDashboard.putNumber(  "IMU_Byte_Count",       navx_device.getByteCount());
-
-        /* Prepare line to print */
-        _sb.append("\tOut%:");
-        _sb.append(talonFXLeft.getMotorOutputPercent());
-        _sb.append("\tVel:");
-        _sb.append(talonFXLeft.getSelectedSensorVelocity(Constants.kPIDLoopIdx));
-        /* Append more signals to print when in speed mode */
-        _sb.append("\terr:");
-        _sb.append(talonFXLeft.getClosedLoopError(Constants.kPIDLoopIdx));
-
         /* Instrumentation */
-        Instrumentation.Process(talonFXLeft, _sb);
+        Instrumentation.ProcessNavX(navx_device);
+        Instrumentation.ProcessTalon(talonFXRight);
     }
 
     @Override
@@ -303,24 +223,24 @@ public class DriveTrain extends SubsystemBase {
         differentialDrive1.curvatureDrive(speed, rotation, quickTurn);
     }
     public void driveToTarget(double meters) {
-			int targetPos = distanceMetersToNativeUnits(meters);
+        int targetPos = distanceMetersToNativeUnits(meters);
 
-            talonFXLeft.set(TalonFXControlMode.MotionMagic, targetPos);
-			talonFXRight.set(TalonFXControlMode.MotionMagic, targetPos);
+        talonFXLeft.set(TalonFXControlMode.MotionMagic, targetPos);
+        talonFXRight.set(TalonFXControlMode.MotionMagic, targetPos);
     }
     public void tankDriveVolts(double leftVolts, double rightVolts) {
         talonFXLeft.setVoltage(leftVolts);
         talonFXRight.setVoltage(-rightVolts);
         differentialDrive1.feed();
     }
-    private int distanceMetersToNativeUnits(double positionMeters) {
+    public int distanceMetersToNativeUnits(double positionMeters) {
         double wheelRotations = positionMeters/(2 * Math.PI * Units.inchesToMeters(Constants.kWheelRadiusInches));
         double motorRotations = wheelRotations * Constants.kGearRatio;
         int sensorCounts = (int)(motorRotations * kCountsPerRev);
         return sensorCounts;
     }
 /*    
-    private int velocityToNativeUnits(double velocityMetersPerSecond) {
+    public int velocityToNativeUnits(double velocityMetersPerSecond) {
         double wheelRotationsPerSecond = velocityMetersPerSecond/(2 * Math.PI * Units.inchesToMeters(Constants.kWheelRadiusInches));
         double motorRotationsPerSecond = wheelRotationsPerSecond * Constants.kGearRatio;
         double motorRotationsPer100ms = motorRotationsPerSecond / Constants.k100msPerSecond;
@@ -328,7 +248,7 @@ public class DriveTrain extends SubsystemBase {
         return sensorCountsPer100ms;
     }
 */    
-    private double nativeUnitsToDistanceMeters(double sensorCounts) {
+    public double nativeUnitsToDistanceMeters(double sensorCounts) {
         double motorRotations = (double)sensorCounts / kCountsPerRev;
         double wheelRotations = motorRotations / Constants.kGearRatio;
         double positionMeters = wheelRotations * (2 * Math.PI * Units.inchesToMeters(Constants.kWheelRadiusInches));
