@@ -49,7 +49,7 @@ public class CommandDriveTrain extends CommandBase {
         }
         SmartDashboard.putString(  "DriveTrainMode",   m_Mode.toString());
 
-        m_driveTrain.logPeriodic();
+        //m_driveTrain.logPeriodic();
     }
 
     // Called once after isFinished returns true

@@ -147,6 +147,8 @@ public class AutonomousCommand extends CommandBase {
         double target_sensorUnits = Constants.kSensorUnitsPerRotation * Constants.kRotationsToTravel + _lockedDistance;
         double target_turn = _targetAngle;
 
+        System.out.println("target_sensorUnits = " + target_sensorUnits + " target_turn = " + target_turn);
+
         /* Configured for MotionMagic on Integrated Sensors' Sum and Auxiliary PID on Integrated Sensors' Difference */
         _driveTrain.talonFXRight.set(TalonFXControlMode.MotionMagic, target_sensorUnits, DemandType.AuxPID, target_turn);
         _driveTrain.talonFXLeft.follow(_driveTrain.talonFXRight, FollowerType.AuxOutput1);        
