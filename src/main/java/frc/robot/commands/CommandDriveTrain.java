@@ -34,7 +34,7 @@ public class CommandDriveTrain extends CommandBase {
     // Called just before this Command runs the first time
     @Override
     public void initialize() {
-        m_Mode = DriveMode.ARCADE;
+        setDriveMode(DriveMode.ARCADE);
     }
 
     // Called repeatedly when this Command is scheduled to run
@@ -43,11 +43,10 @@ public class CommandDriveTrain extends CommandBase {
         if (m_Mode == DriveMode.ARCADE) {
             m_driveTrain.driveArcade(-m_controller.getY(Hand.kLeft), m_controller.getX(Hand.kRight), true);
         } else if (m_Mode == DriveMode.TANK) {
-            m_driveTrain.driveTank(m_controller.getY(Hand.kLeft), m_controller.getY(Hand.kRight));
+            m_driveTrain.driveTank(-m_controller.getY(Hand.kLeft), -m_controller.getY(Hand.kRight));
         } else if (m_Mode == DriveMode.CURVATURE) {
-            m_driveTrain.driveCurvature(m_controller.getY(Hand.kLeft), m_controller.getY(Hand.kRight), m_controller.getStickButton(Hand.kLeft));
+            m_driveTrain.driveCurvature(-m_controller.getY(Hand.kLeft), m_controller.getX(Hand.kRight), m_controller.getStickButton(Hand.kLeft));
         }
-        SmartDashboard.putString(  "DriveTrainMode",   m_Mode.toString());
 
         //m_driveTrain.logPeriodic();
     }
@@ -56,7 +55,7 @@ public class CommandDriveTrain extends CommandBase {
     @Override
     public void end(boolean interrupted) {
         m_driveTrain.driveArcade(0, 0, true);
-        m_Mode = DriveMode.ARCADE;
+        setDriveMode(DriveMode.ARCADE);
     }
 
     // Make this return true when this Command no longer needs to run execute()
@@ -71,6 +70,7 @@ public class CommandDriveTrain extends CommandBase {
 
     public void setDriveMode(DriveMode mode) {
         m_Mode = mode;
+        SmartDashboard.putString("DriveTrainMode",   m_Mode.toString());
     }
  
     public void toggleDriveMode() {

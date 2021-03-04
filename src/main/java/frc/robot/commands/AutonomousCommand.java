@@ -51,11 +51,13 @@ public class AutonomousCommand extends CommandBase {
     public void initialize() {
         System.out.println("AutonomousCommand - initialize");
 
-        _driveTrain.driveTank(0, 0);
+        _driveTrain.tankDriveVolts(0, 0);
         _driveTrain.enableBrakes(true);
 
+        _driveTrain.talonFXLeft.getAllConfigs(_leftConfig);
+        _driveTrain.talonFXRight.getAllConfigs(_rightConfig);
 
-        		/* Configure the left Talon's selected sensor as local Integrated Sensor */
+        /* Configure the left Talon's selected sensor as local Integrated Sensor */
 		_leftConfig.primaryPID.selectedFeedbackSensor =	TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice();	// Local Feedback Source
 
 		/* Configure the Remote Talon's selected sensor as a remote sensor for the right Talon */
@@ -116,7 +118,10 @@ public class AutonomousCommand extends CommandBase {
 		_rightConfig.slot0.closedLoopPeriod = closedLoopTimeMs;
 		_rightConfig.slot1.closedLoopPeriod = closedLoopTimeMs;
 		_rightConfig.slot2.closedLoopPeriod = closedLoopTimeMs;
-		_rightConfig.slot3.closedLoopPeriod = closedLoopTimeMs;
+        _rightConfig.slot3.closedLoopPeriod = closedLoopTimeMs;
+        
+        System.out.println("AutonomousCommand - LeftConfig: " + _leftConfig);
+        System.out.println("AutonomousCommand - RightConfig: " + _rightConfig);
 
 		_driveTrain.talonFXLeft.configAllSettings(_leftConfig);
         _driveTrain.talonFXRight.configAllSettings(_rightConfig);
@@ -142,8 +147,14 @@ public class AutonomousCommand extends CommandBase {
 
         _targetAngle = _driveTrain.talonFXRight.getSelectedSensorPosition(1);
         _lockedDistance = _driveTrain.talonFXRight.getSelectedSensorPosition(0);
+   
+    }
 
-        /* Calculate targets from gamepad inputs */
+    // Called repeatedly when this Command is scheduled to run
+    @Override
+    public void execute() {
+        System.out.println("AutonomousCommand - execute");
+
         double target_sensorUnits = Constants.kSensorUnitsPerRotation * Constants.kRotationsToTravel + _lockedDistance;
         double target_turn = _targetAngle;
 
@@ -151,13 +162,8 @@ public class AutonomousCommand extends CommandBase {
 
         /* Configured for MotionMagic on Integrated Sensors' Sum and Auxiliary PID on Integrated Sensors' Difference */
         _driveTrain.talonFXRight.set(TalonFXControlMode.MotionMagic, target_sensorUnits, DemandType.AuxPID, target_turn);
-        _driveTrain.talonFXLeft.follow(_driveTrain.talonFXRight, FollowerType.AuxOutput1);        
-    }
-
-    // Called repeatedly when this Command is scheduled to run
-    @Override
-    public void execute() {
-        System.out.println("AutonomousCommand - execute");
+        _driveTrain.talonFXLeft.follow(_driveTrain.talonFXRight, FollowerType.AuxOutput1);    
+        _driveTrain.differentialDrive1.feed(); 
     }
 
     // Called once after isFinished returns true
@@ -184,7 +190,6 @@ public class AutonomousCommand extends CommandBase {
 			masterConfig.sum1Term = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice(); //Local IntegratedSensor
 			masterConfig.primaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.SensorSum.toFeedbackDevice(); //Sum0 + Sum1
 		}
-
 		/* Since the Distance is the sum of the two sides, divide by 2 so the total isn't double  the real-world value */
 		masterConfig.primaryPID.selectedFeedbackCoefficient = 0.5;
 	 }
