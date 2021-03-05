@@ -32,10 +32,10 @@ public class DriveTrain extends SubsystemBase {
 
     private final AHRS navx_device = new AHRS();
 
-    public final WPI_TalonFX talonFXLeft = new WPI_TalonFX(13);
-    public final WPI_TalonFX talonFXRight = new WPI_TalonFX(14);
-    private final WPI_TalonFX talonFXLeftFollower = new WPI_TalonFX(15);
-    private final WPI_TalonFX talonFXRightFollower = new WPI_TalonFX(12);
+    public final WPI_TalonFX talonFXLeft = new WPI_TalonFX(12);
+    public final WPI_TalonFX talonFXRight = new WPI_TalonFX(13);
+    private final WPI_TalonFX talonFXLeftFollower = new WPI_TalonFX(14);
+    private final WPI_TalonFX talonFXRightFollower = new WPI_TalonFX(15);
 
     public final DifferentialDrive differentialDrive1 = new DifferentialDrive(talonFXLeft, talonFXRight);
     private final DifferentialDriveOdometry m_odometry = new DifferentialDriveOdometry(navx_device.getRotation2d());
@@ -60,7 +60,7 @@ public class DriveTrain extends SubsystemBase {
         resetEncoders();
 
         addChild("Differential Drive 1", differentialDrive1);
-        differentialDrive1.setRightSideInverted(true);
+        differentialDrive1.setRightSideInverted(false);
         differentialDrive1.setSafetyEnabled(true);
         differentialDrive1.setExpiration(0.1);
         differentialDrive1.setMaxOutput(0.75);
