@@ -142,7 +142,11 @@ public class AutonomousCommand extends CommandBase {
 
 		/* Initialize */
 		_driveTrain.talonFXRight.setStatusFramePeriod(StatusFrameEnhanced.Status_10_Targets, 10);
-		_driveTrain.resetEncoders();
+
+        _driveTrain.talonFXLeft.setSelectedSensorPosition(0, Constants.PID_PRIMARY, Constants.kTimeoutMs);
+        _driveTrain.talonFXRight.setSelectedSensorPosition(0, Constants.PID_PRIMARY, Constants.kTimeoutMs);
+        _driveTrain.talonFXLeft.setSelectedSensorPosition(0, Constants.PID_TURN, Constants.kTimeoutMs);
+        _driveTrain.talonFXRight.setSelectedSensorPosition(0, Constants.PID_TURN, Constants.kTimeoutMs);
 		
         /* Determine which slot affects which PID */
         _driveTrain.talonFXRight.selectProfileSlot(Constants.kSlot_Distanc, Constants.PID_PRIMARY);
@@ -151,6 +155,8 @@ public class AutonomousCommand extends CommandBase {
         _targetAngle = _driveTrain.talonFXRight.getSelectedSensorPosition(1);
         _lockedDistance = _driveTrain.talonFXRight.getSelectedSensorPosition(0);
    
+        System.out.println("_lockedDistance = " + _lockedDistance + " _targetAngle = " + _targetAngle);
+        _driveTrain.enableDriveTrain(true);
     }
 
     // Called repeatedly when this Command is scheduled to run
@@ -173,6 +179,7 @@ public class AutonomousCommand extends CommandBase {
     @Override
     public void end(boolean interrupted) {
         System.out.println("AutonomousCommand - end");
+        _driveTrain.enableDriveTrain(false);
     }
 
     // Make this return true when this Command no longer needs to run execute()

@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Units;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.Faults;
 import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
@@ -107,6 +108,12 @@ public class DriveTrain extends SubsystemBase {
     public void updateDashboard()
     {
         SmartDashboard.putData("Field", m_field);
+    }
+
+    public void enableDriveTrain(boolean enable) {
+        differentialDrive1.setSafetyEnabled(enable);
+        talonFXLeft.set(enable ? ControlMode.PercentOutput : ControlMode.Disabled, 0);
+        talonFXRight.set(enable ? ControlMode.PercentOutput : ControlMode.Disabled, 0);
     }
 
     public void enableBrakes(boolean enabled) {

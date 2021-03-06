@@ -39,6 +39,7 @@ public class CommandDriveTrain extends CommandBase {
         setDriveMode(DriveMode.ARCADE);
         setUseSquares(true);
         m_driveTrain.enableBrakes(true);
+        m_driveTrain.enableDriveTrain(true);
         _wasLeftStickDown = false;
     }
 
@@ -66,6 +67,7 @@ public class CommandDriveTrain extends CommandBase {
     @Override
     public void end(boolean interrupted) {
         m_driveTrain.tankDriveVolts(0, 0);
+        m_driveTrain.enableDriveTrain(false);
         setDriveMode(DriveMode.ARCADE);
     }
 
