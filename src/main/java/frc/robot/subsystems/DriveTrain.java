@@ -65,7 +65,6 @@ public class DriveTrain extends SubsystemBase {
         differentialDrive1.setExpiration(0.1);
         differentialDrive1.setMaxOutput(0.75);
         differentialDrive1.setDeadband(0.02);
-
     }
 
     @Override

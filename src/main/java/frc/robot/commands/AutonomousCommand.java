@@ -57,6 +57,9 @@ public class AutonomousCommand extends CommandBase {
         _driveTrain.talonFXLeft.getAllConfigs(_leftConfig);
         _driveTrain.talonFXRight.getAllConfigs(_rightConfig);
 
+        System.out.println("AutonomousCommand - leftConfig(before): " + _leftConfig);
+        System.out.println("AutonomousCommand - rightConfig(before): " + _rightConfig);
+
         /* Configure the left Talon's selected sensor as local Integrated Sensor */
 		_leftConfig.primaryPID.selectedFeedbackSensor =	TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice();	// Local Feedback Source
 
@@ -175,6 +178,9 @@ public class AutonomousCommand extends CommandBase {
     // Make this return true when this Command no longer needs to run execute()
     @Override
     public boolean isFinished() {
+        double error = _driveTrain.talonFXRight.getClosedLoopError();
+        System.out.println("AutonomousCommand - error: " + error);
+
         return false;
     }
 

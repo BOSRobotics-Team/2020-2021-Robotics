@@ -18,10 +18,12 @@ public class CommandDriveTrain extends CommandBase {
         TANK,
         CURVATURE
     }
-    public DriveMode m_Mode = DriveMode.ARCADE;
+    public DriveMode m_DriveMode = DriveMode.ARCADE;
+    public boolean m_UseSquares = true;
 
     private final DriveTrain m_driveTrain;
     private final XboxController m_controller;
+    private boolean _wasLeftStickDown = false;
 
     public CommandDriveTrain(DriveTrain driveTrain, XboxController controller) {
         m_driveTrain = driveTrain;
@@ -35,17 +37,26 @@ public class CommandDriveTrain extends CommandBase {
     @Override
     public void initialize() {
         setDriveMode(DriveMode.ARCADE);
+        setUseSquares(true);
+        m_driveTrain.enableBrakes(true);
+        _wasLeftStickDown = false;
     }
 
     // Called repeatedly when this Command is scheduled to run
     @Override
     public void execute() {
-        if (m_Mode == DriveMode.ARCADE) {
-            m_driveTrain.driveArcade(-m_controller.getY(Hand.kLeft), m_controller.getX(Hand.kRight), true);
-        } else if (m_Mode == DriveMode.TANK) {
+        boolean leftStickDown = m_controller.getStickButton(Hand.kLeft);
+        if (!_wasLeftStickDown && leftStickDown) {
+            setUseSquares(!m_UseSquares);
+        }
+        _wasLeftStickDown = leftStickDown;
+
+        if (m_DriveMode == DriveMode.ARCADE) {
+            m_driveTrain.driveArcade(-m_controller.getY(Hand.kLeft), m_controller.getX(Hand.kRight), m_UseSquares);
+        } else if (m_DriveMode == DriveMode.TANK) {
             m_driveTrain.driveTank(-m_controller.getY(Hand.kLeft), -m_controller.getY(Hand.kRight));
-        } else if (m_Mode == DriveMode.CURVATURE) {
-            m_driveTrain.driveCurvature(-m_controller.getY(Hand.kLeft), m_controller.getX(Hand.kRight), m_controller.getStickButton(Hand.kLeft));
+        } else if (m_DriveMode == DriveMode.CURVATURE) {
+            m_driveTrain.driveCurvature(-m_controller.getY(Hand.kLeft), m_controller.getX(Hand.kRight), m_controller.getStickButton(Hand.kRight));
         }
 
         //m_driveTrain.logPeriodic();
@@ -54,7 +65,7 @@ public class CommandDriveTrain extends CommandBase {
     // Called once after isFinished returns true
     @Override
     public void end(boolean interrupted) {
-        m_driveTrain.driveArcade(0, 0, true);
+        m_driveTrain.tankDriveVolts(0, 0);
         setDriveMode(DriveMode.ARCADE);
     }
 
@@ -65,12 +76,16 @@ public class CommandDriveTrain extends CommandBase {
     }
     
     public DriveMode getDriveMode() {
-        return m_Mode;
+        return m_DriveMode;
     }
 
     public void setDriveMode(DriveMode mode) {
-        m_Mode = mode;
-        SmartDashboard.putString("DriveTrainMode",   m_Mode.toString());
+        m_DriveMode = mode;
+        SmartDashboard.putString("DriveTrainMode",   m_DriveMode.toString());
+    }
+    public void setUseSquares(boolean use) {
+        m_UseSquares = use;
+        SmartDashboard.putBoolean("UseSquares", m_UseSquares);
     }
  
     public void toggleDriveMode() {
