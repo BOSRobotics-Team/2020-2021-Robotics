@@ -54,8 +54,8 @@ public class AutonomousCommand extends CommandBase {
         _driveTrain.tankDriveVolts(0, 0);
         _driveTrain.enableBrakes(true);
 
-        _driveTrain.talonFXLeft.getAllConfigs(_leftConfig);
-        _driveTrain.talonFXRight.getAllConfigs(_rightConfig);
+        _driveTrain.leftMaster.getAllConfigs(_leftConfig);
+        _driveTrain.rightMaster.getAllConfigs(_rightConfig);
 
         System.out.println("AutonomousCommand - leftConfig(before): " + _leftConfig);
         System.out.println("AutonomousCommand - rightConfig(before): " + _rightConfig);
@@ -64,7 +64,7 @@ public class AutonomousCommand extends CommandBase {
 		_leftConfig.primaryPID.selectedFeedbackSensor =	TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice();	// Local Feedback Source
 
 		/* Configure the Remote Talon's selected sensor as a remote sensor for the right Talon */
-		_rightConfig.remoteFilter0.remoteSensorDeviceID = _driveTrain.talonFXLeft.getDeviceID(); // Device ID of Source
+		_rightConfig.remoteFilter0.remoteSensorDeviceID = _driveTrain.leftMaster.getDeviceID(); // Device ID of Source
 		_rightConfig.remoteFilter0.remoteSensorSource = RemoteSensorSource.TalonFX_SelectedSensor; // Remote Feedback Source
 		
 		/* Now that the Left sensor can be used by the master Talon,
@@ -126,34 +126,34 @@ public class AutonomousCommand extends CommandBase {
         System.out.println("AutonomousCommand - LeftConfig: " + _leftConfig);
         System.out.println("AutonomousCommand - RightConfig: " + _rightConfig);
 
-		_driveTrain.talonFXLeft.configAllSettings(_leftConfig);
-        _driveTrain.talonFXRight.configAllSettings(_rightConfig);
+		_driveTrain.leftMaster.configAllSettings(_leftConfig);
+        _driveTrain.rightMaster.configAllSettings(_rightConfig);
         
         /* Configure output and sensor direction */
-		_driveTrain.talonFXLeft.setInverted(_leftInvert);
-        _driveTrain.talonFXRight.setInverted(_rightInvert);
+		_driveTrain.leftMaster.setInverted(_leftInvert);
+        _driveTrain.rightMaster.setInverted(_rightInvert);
 
 		/* Set status frame periods to ensure we don't have stale data */
-		_driveTrain.talonFXRight.setStatusFramePeriod(StatusFrame.Status_12_Feedback1, 20, Constants.kTimeoutMs);
-		_driveTrain.talonFXRight.setStatusFramePeriod(StatusFrame.Status_13_Base_PIDF0, 20, Constants.kTimeoutMs);
-		_driveTrain.talonFXRight.setStatusFramePeriod(StatusFrame.Status_14_Turn_PIDF1, 20, Constants.kTimeoutMs);
-		_driveTrain.talonFXRight.setStatusFramePeriod(StatusFrame.Status_10_Targets, 20, Constants.kTimeoutMs);
-		_driveTrain.talonFXLeft.setStatusFramePeriod(StatusFrame.Status_2_Feedback0, 5, Constants.kTimeoutMs);
+		_driveTrain.rightMaster.setStatusFramePeriod(StatusFrame.Status_12_Feedback1, 20, Constants.kTimeoutMs);
+		_driveTrain.rightMaster.setStatusFramePeriod(StatusFrame.Status_13_Base_PIDF0, 20, Constants.kTimeoutMs);
+		_driveTrain.rightMaster.setStatusFramePeriod(StatusFrame.Status_14_Turn_PIDF1, 20, Constants.kTimeoutMs);
+		_driveTrain.rightMaster.setStatusFramePeriod(StatusFrame.Status_10_Targets, 20, Constants.kTimeoutMs);
+		_driveTrain.leftMaster.setStatusFramePeriod(StatusFrame.Status_2_Feedback0, 5, Constants.kTimeoutMs);
 
 		/* Initialize */
-		_driveTrain.talonFXRight.setStatusFramePeriod(StatusFrameEnhanced.Status_10_Targets, 10);
+		_driveTrain.rightMaster.setStatusFramePeriod(StatusFrameEnhanced.Status_10_Targets, 10);
 
-        _driveTrain.talonFXLeft.setSelectedSensorPosition(0, Constants.PID_PRIMARY, Constants.kTimeoutMs);
-        _driveTrain.talonFXRight.setSelectedSensorPosition(0, Constants.PID_PRIMARY, Constants.kTimeoutMs);
-        _driveTrain.talonFXLeft.setSelectedSensorPosition(0, Constants.PID_TURN, Constants.kTimeoutMs);
-        _driveTrain.talonFXRight.setSelectedSensorPosition(0, Constants.PID_TURN, Constants.kTimeoutMs);
+        _driveTrain.leftMaster.setSelectedSensorPosition(0, Constants.PID_PRIMARY, Constants.kTimeoutMs);
+        _driveTrain.rightMaster.setSelectedSensorPosition(0, Constants.PID_PRIMARY, Constants.kTimeoutMs);
+        _driveTrain.leftMaster.setSelectedSensorPosition(0, Constants.PID_TURN, Constants.kTimeoutMs);
+        _driveTrain.rightMaster.setSelectedSensorPosition(0, Constants.PID_TURN, Constants.kTimeoutMs);
 		
         /* Determine which slot affects which PID */
-        _driveTrain.talonFXRight.selectProfileSlot(Constants.kSlot_Distanc, Constants.PID_PRIMARY);
-        _driveTrain.talonFXRight.selectProfileSlot(Constants.kSlot_Turning, Constants.PID_TURN);
+        _driveTrain.rightMaster.selectProfileSlot(Constants.kSlot_Distanc, Constants.PID_PRIMARY);
+        _driveTrain.rightMaster.selectProfileSlot(Constants.kSlot_Turning, Constants.PID_TURN);
 
-        _targetAngle = _driveTrain.talonFXRight.getSelectedSensorPosition(1);
-        _lockedDistance = _driveTrain.talonFXRight.getSelectedSensorPosition(0);
+        _targetAngle = _driveTrain.rightMaster.getSelectedSensorPosition(1);
+        _lockedDistance = _driveTrain.rightMaster.getSelectedSensorPosition(0);
    
         System.out.println("_lockedDistance = " + _lockedDistance + " _targetAngle = " + _targetAngle);
         _driveTrain.enableDriveTrain(true);
@@ -170,9 +170,9 @@ public class AutonomousCommand extends CommandBase {
         System.out.println("target_sensorUnits = " + target_sensorUnits + " target_turn = " + target_turn);
 
         /* Configured for MotionMagic on Integrated Sensors' Sum and Auxiliary PID on Integrated Sensors' Difference */
-        _driveTrain.talonFXRight.set(TalonFXControlMode.MotionMagic, target_sensorUnits, DemandType.AuxPID, target_turn);
-        _driveTrain.talonFXLeft.follow(_driveTrain.talonFXRight, FollowerType.AuxOutput1);    
-        _driveTrain.differentialDrive1.feed(); 
+        _driveTrain.rightMaster.set(TalonFXControlMode.MotionMagic, target_sensorUnits, DemandType.AuxPID, target_turn);
+        _driveTrain.leftMaster.follow(_driveTrain.rightMaster, FollowerType.AuxOutput1);    
+        _driveTrain.differentialDrive.feed(); 
     }
 
     // Called once after isFinished returns true
@@ -185,7 +185,7 @@ public class AutonomousCommand extends CommandBase {
     // Make this return true when this Command no longer needs to run execute()
     @Override
     public boolean isFinished() {
-        double error = _driveTrain.talonFXRight.getClosedLoopError();
+        double error = _driveTrain.rightMaster.getClosedLoopError();
         System.out.println("AutonomousCommand - error: " + error);
 
         return false;
