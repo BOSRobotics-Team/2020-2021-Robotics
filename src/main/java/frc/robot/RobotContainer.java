@@ -84,7 +84,7 @@ public class RobotContainer {
   public final UsbCamera cam1; 
 
   public final AutonomousCommand m_autoCommand = new AutonomousCommand(this);
-  public final CommandDriveTrain m_cmdDriveTrainCommand = new CommandDriveTrain(driveTrain, driverController);
+  public final CommandKKDriveTrain m_cmdDriveTrainCommand = new CommandKKDriveTrain(driveTrain, driverController);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {

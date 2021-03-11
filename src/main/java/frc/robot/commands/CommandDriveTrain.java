@@ -21,9 +21,9 @@ public class CommandDriveTrain extends CommandBase {
     public DriveMode m_DriveMode = DriveMode.ARCADE;
     public boolean m_UseSquares = true;
 
-    private final DriveTrain m_driveTrain;
-    private final XboxController m_controller;
-    private boolean _wasLeftStickDown = false;
+    public final DriveTrain m_driveTrain;
+    public final XboxController m_controller;
+    public boolean _wasLeftStickDown = false;
 
     public CommandDriveTrain(DriveTrain driveTrain, XboxController controller) {
         m_driveTrain = driveTrain;
