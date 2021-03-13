@@ -139,7 +139,7 @@ public class SmartMotor extends WPI_TalonFX {
         this.setVoltage(outputVolts);
     }
     public void set(double outputVolts) {
-        this.set(outputVolts);
+        this.setPercentVoltage(outputVolts);
     }
     public void setTarget(double meters) {
         int targetPos = convertor.distanceMetersToNativeUnits(meters);
@@ -217,11 +217,11 @@ public class SmartMotor extends WPI_TalonFX {
         SmartDashboard.putNumber(name + "SensorVel", this.getSelectedSensorVelocity(Constants.kPIDLoopIdx));
         SmartDashboard.putNumber(name + "SensorPos", this.getSelectedSensorPosition(Constants.kPIDLoopIdx));
         SmartDashboard.putNumber(name + "MotorOutputPercent", this.getMotorOutputPercent());
-        SmartDashboard.putNumber(name + "ClosedLoopError", this.getClosedLoopError(Constants.kPIDLoopIdx));
+//        SmartDashboard.putNumber(name + "ClosedLoopError", this.getClosedLoopError(Constants.kPIDLoopIdx));
         SmartDashboard.putString(name + "ControlMode", this.getControlMode().toString());
         
         /* Print the Active Trajectory Point Motion Magic is servoing towards */
-        SmartDashboard.putNumber(name + "ClosedLoopTarget", this.getClosedLoopTarget(Constants.kPIDLoopIdx));
+//        SmartDashboard.putNumber(name + "ClosedLoopTarget", this.getClosedLoopTarget(Constants.kPIDLoopIdx));
         SmartDashboard.putNumber(name + "ActTrajVelocity", this.getActiveTrajectoryVelocity());
         SmartDashboard.putNumber(name + "ActTrajPosition", this.getActiveTrajectoryPosition());        
     }

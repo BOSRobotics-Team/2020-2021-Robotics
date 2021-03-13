@@ -8,14 +8,18 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 //import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.*;
+import frc.robot.subsystems.DriveTrain.DriveMode;
 
 public class CommandKKDriveTrain extends CommandDriveTrain {
 
-    public boolean scalingOn = false;
-    public double scaling = 0.5;
-    public int _lastPOV = -1;
+    private int _lastPOV = -1;
 
+    private boolean scalingOn = false;
+    private double scaling = 0.5;
 
+    private double lastX = 0.0;
+    private double lastY = 0.0;
+    
     public CommandKKDriveTrain(DriveTrain driveTrain, XboxController controller) {
         super(driveTrain, controller);
 
@@ -25,6 +29,8 @@ public class CommandKKDriveTrain extends CommandDriveTrain {
     @Override
     public void initialize() {
         super.initialize();
+
+        lastX = lastY = 0.0;
     }
 
     // Called repeatedly when this Command is scheduled to run
@@ -58,7 +64,34 @@ public class CommandKKDriveTrain extends CommandDriveTrain {
         }
         _wasLeftStickDown = leftStickDown;
 
-        m_driveTrain.setOutput(m_controller);
+        double yLeftStick = -m_controller.getY(Hand.kLeft) * m_driveTrain.getDriveScaling();
+        double y = (yLeftStick + lastY) / 2.0;
+
+        lastY = yLeftStick;
+
+        if (m_driveTrain.getDriveMode() == DriveMode.ARCADE) {
+            double xRightStick = m_controller.getX(Hand.kRight) * m_driveTrain.getDriveScaling();
+            double x = (xRightStick + lastX) / 2.0;
+            lastX = xRightStick;
+
+            m_driveTrain.driveArcade(y, x, m_driveTrain.getUseSquares());
+        } else if (m_driveTrain.getDriveMode() == DriveMode.TANK) {
+            double yRightStick = -m_controller.getY(Hand.kRight) * m_driveTrain.getDriveScaling();
+            double x = (yRightStick + lastX) / 2.0;
+            lastX = yRightStick;
+
+            m_driveTrain.driveTank(y, x);
+        } else if (m_driveTrain.getDriveMode() == DriveMode.CURVATURE) {
+            double xRightStick = m_controller.getX(Hand.kRight) * m_driveTrain.getDriveScaling();
+            boolean btnRightStick = m_controller.getStickButton(Hand.kRight);
+
+            double x = (xRightStick + lastX) / 2.0;
+            lastX = xRightStick;
+
+            m_driveTrain.driveCurvature(y, x, btnRightStick);
+        }
+
+//        m_driveTrain.setOutput(m_controller);
 
         //m_driveTrain.logPeriodic();
     }
