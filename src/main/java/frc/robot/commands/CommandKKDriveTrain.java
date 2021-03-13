@@ -13,6 +13,7 @@ public class CommandKKDriveTrain extends CommandDriveTrain {
 
     public boolean scalingOn = false;
     public double scaling = 0.5;
+    public int _lastPOV = -1;
 
 
     public CommandKKDriveTrain(DriveTrain driveTrain, XboxController controller) {
@@ -31,16 +32,24 @@ public class CommandKKDriveTrain extends CommandDriveTrain {
     public void execute() {
 
         int pov = m_controller.getPOV();
-        if (pov == 0) {
-            scaling += 0.1;
-            if (scaling > 1.0)
-                scaling = 1.0;
-        }
-        else if (pov == 180) {
-            scaling -= 0.1;
-            if (scaling < 0.1)
-                scaling = 0.1;
-        }
+        if (pov != _lastPOV)
+        {
+            if (pov == 0) {
+                scaling += 0.1;
+                if (scaling > 1.0)
+                    scaling = 1.0;
+
+                m_driveTrain.setDriveScaling(scalingOn ? scaling : 1.0);
+            }
+            else if (pov == 180) {
+                scaling -= 0.1;
+                if (scaling < 0.1)
+                    scaling = 0.1;
+
+                m_driveTrain.setDriveScaling(scalingOn ? scaling : 1.0);
+            }
+        }    
+        _lastPOV = pov;
 
         boolean leftStickDown = m_controller.getStickButton(Hand.kLeft);
         if (!_wasLeftStickDown && leftStickDown) {
