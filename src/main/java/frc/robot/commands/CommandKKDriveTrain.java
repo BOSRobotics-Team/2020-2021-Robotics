@@ -12,13 +12,14 @@ import frc.robot.subsystems.DriveTrain.DriveMode;
 
 public class CommandKKDriveTrain extends CommandDriveTrain {
 
-    private int _lastPOV = -1;
+    private boolean _lastTriggerL = false;
+    private boolean _lastTriggerR = false;
 
     private boolean scalingOn = false;
     private double scaling = 0.5;
 
-    private double lastX = 0.0;
-    private double lastY = 0.0;
+    private double _lastX = 0.0;
+    private double _lastY = 0.0;
     
     public CommandKKDriveTrain(DriveTrain driveTrain, XboxController controller) {
         super(driveTrain, controller);
@@ -30,70 +31,62 @@ public class CommandKKDriveTrain extends CommandDriveTrain {
     public void initialize() {
         super.initialize();
 
-        lastX = lastY = 0.0;
+        _lastX = _lastY = 0.0;
+        _lastTriggerL = _lastTriggerR = false;
     }
 
     // Called repeatedly when this Command is scheduled to run
     @Override
     public void execute() {
-
-        int pov = m_controller.getPOV();
-        if (pov != _lastPOV)
-        {
-            if (pov == 0) {
-                scaling += 0.1;
-                if (scaling > 1.0)
-                    scaling = 1.0;
-
-                m_driveTrain.setDriveScaling(scalingOn ? scaling : 1.0);
-            }
-            else if (pov == 180) {
-                scaling -= 0.1;
-                if (scaling < 0.1)
-                    scaling = 0.1;
-
-                m_driveTrain.setDriveScaling(scalingOn ? scaling : 1.0);
-            }
-        }    
-        _lastPOV = pov;
-
+        double triggerL = m_controller.getTriggerAxis(Hand.kLeft);
+        double triggerR = m_controller.getTriggerAxis(Hand.kRight);
         boolean leftStickDown = m_controller.getStickButton(Hand.kLeft);
+        boolean rightStickDown = m_controller.getStickButton(Hand.kRight);
+
+        if ((triggerL > 0.0) && !_lastTriggerL)
+        { 
+            scaling = Math.min(scaling + 0.1, 1.0);
+            m_driveTrain.setDriveScaling(scalingOn ? scaling : 1.0);
+        }
+        _lastTriggerL = (triggerL > 0.0);
+
+        if ((triggerR > 0.0) && !_lastTriggerR)
+        {
+            scaling = Math.max(scaling - 0.1, 0.1);
+            m_driveTrain.setDriveScaling(scalingOn ? scaling : 1.0);
+        }
+        _lastTriggerR = (triggerR > 0.0);
+
         if (!_wasLeftStickDown && leftStickDown) {
             scalingOn = !scalingOn;
             m_driveTrain.setDriveScaling(scalingOn ? scaling : 1.0);
         }
         _wasLeftStickDown = leftStickDown;
 
-        double yLeftStick = -m_controller.getY(Hand.kLeft) * m_driveTrain.getDriveScaling();
-        double y = (yLeftStick + lastY) / 2.0;
+        double yLeft = -m_controller.getY(Hand.kLeft) * m_driveTrain.getDriveScaling();
+        double xRight = _lastX;
 
-        lastY = yLeftStick;
+        if (m_driveTrain.getDriveMode() == DriveMode.TANK)
+            xRight = -m_controller.getY(Hand.kRight) * m_driveTrain.getDriveScaling();
+        else
+            xRight = m_controller.getX(Hand.kRight) * m_driveTrain.getDriveScaling();
+
+        double x = (xRight + _lastX) / 2.0;
+        double y = (yLeft + _lastY) / 2.0;
 
         if (m_driveTrain.getDriveMode() == DriveMode.ARCADE) {
-            double xRightStick = m_controller.getX(Hand.kRight) * m_driveTrain.getDriveScaling();
-            double x = (xRightStick + lastX) / 2.0;
-            lastX = xRightStick;
-
             m_driveTrain.driveArcade(y, x, m_driveTrain.getUseSquares());
         } else if (m_driveTrain.getDriveMode() == DriveMode.TANK) {
-            double yRightStick = -m_controller.getY(Hand.kRight) * m_driveTrain.getDriveScaling();
-            double x = (yRightStick + lastX) / 2.0;
-            lastX = yRightStick;
-
             m_driveTrain.driveTank(y, x);
         } else if (m_driveTrain.getDriveMode() == DriveMode.CURVATURE) {
-            double xRightStick = m_controller.getX(Hand.kRight) * m_driveTrain.getDriveScaling();
-            boolean btnRightStick = m_controller.getStickButton(Hand.kRight);
-
-            double x = (xRightStick + lastX) / 2.0;
-            lastX = xRightStick;
-
-            m_driveTrain.driveCurvature(y, x, btnRightStick);
+            m_driveTrain.driveCurvature(y, x, rightStickDown);
         }
 
 //        m_driveTrain.setOutput(m_controller);
 
         //m_driveTrain.logPeriodic();
+        _lastX = xRight;
+        _lastY = yLeft;
     }
 
     // Called once after isFinished returns true
