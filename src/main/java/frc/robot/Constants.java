@@ -72,4 +72,7 @@ public class Constants {
 	public final static int kSlot_Turning = SLOT_1;
 	public final static int kSlot_Velocit = SLOT_2;
 	public final static int kSlot_MotProf = SLOT_3;
+
+	public final static double kMaxSpeedMetersPerSecond = 3;
+    public final static double kMaxAccelerationMetersPerSecondSquared = 3;
 }

@@ -119,6 +119,7 @@ public class RobotContainer {
     right_Bumper_Driver.whenPressed(() -> driveTrain.setMaxOutput(0.5))
                        .whenReleased(() -> driveTrain.setMaxOutput(1.0));
     back_Button_Driver.whenPressed(() -> driveTrain.toggleDriveMode());
+    b_Button_Driver.whenPressed(new DriveDistanceProfiledCommand(3, driveTrain).withTimeout(10));
 
     a_Button_Operator.whileHeld(m_extendHookCommand);
     b_Button_Operator.whileHeld(m_retractHookCommand);
