@@ -8,18 +8,11 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.*;
+import frc.robot.subsystems.DriveTrain.DriveMode;
 
 public class CommandDriveTrain extends CommandBase {
 @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
-    public enum DriveMode {
-        ARCADE,
-        TANK,
-        CURVATURE
-    }
-    public DriveMode m_DriveMode = DriveMode.ARCADE;
-    public boolean m_UseSquares = true;
 
     public final DriveTrain m_driveTrain;
     public final XboxController m_controller;
@@ -36,8 +29,8 @@ public class CommandDriveTrain extends CommandBase {
     // Called just before this Command runs the first time
     @Override
     public void initialize() {
-        setDriveMode(DriveMode.ARCADE);
-        setUseSquares(true);
+        m_driveTrain.setDriveMode(DriveMode.ARCADE);
+        m_driveTrain.setUseSquares(true);
         m_driveTrain.enableBrakes(true);
         m_driveTrain.enableDriveTrain(true);
         _wasLeftStickDown = false;
@@ -48,17 +41,10 @@ public class CommandDriveTrain extends CommandBase {
     public void execute() {
         boolean leftStickDown = m_controller.getStickButton(Hand.kLeft);
         if (!_wasLeftStickDown && leftStickDown) {
-            setUseSquares(!m_UseSquares);
+            m_driveTrain.setUseSquares(!m_driveTrain.getUseSquares());
         }
         _wasLeftStickDown = leftStickDown;
-
-        if (m_DriveMode == DriveMode.ARCADE) {
-            m_driveTrain.driveArcade(-m_controller.getY(Hand.kLeft), m_controller.getX(Hand.kRight), m_UseSquares);
-        } else if (m_DriveMode == DriveMode.TANK) {
-            m_driveTrain.driveTank(-m_controller.getY(Hand.kLeft), -m_controller.getY(Hand.kRight));
-        } else if (m_DriveMode == DriveMode.CURVATURE) {
-            m_driveTrain.driveCurvature(-m_controller.getY(Hand.kLeft), m_controller.getX(Hand.kRight), m_controller.getStickButton(Hand.kRight));
-        }
+        m_driveTrain.setOutput(m_controller);
 
         //m_driveTrain.logPeriodic();
     }
@@ -68,34 +54,12 @@ public class CommandDriveTrain extends CommandBase {
     public void end(boolean interrupted) {
         m_driveTrain.tankDriveVolts(0, 0);
         m_driveTrain.enableDriveTrain(false);
-        setDriveMode(DriveMode.ARCADE);
+        m_driveTrain.setDriveMode(DriveMode.ARCADE);
     }
 
     // Make this return true when this Command no longer needs to run execute()
    @Override
    public boolean isFinished() {
        return false;
-    }
-    
-    public DriveMode getDriveMode() {
-        return m_DriveMode;
-    }
-
-    public void setDriveMode(DriveMode mode) {
-        m_DriveMode = mode;
-        SmartDashboard.putString("DriveTrainMode",   m_DriveMode.toString());
-    }
-    public void setUseSquares(boolean use) {
-        m_UseSquares = use;
-        SmartDashboard.putBoolean("UseSquares", m_UseSquares);
-    }
- 
-    public void toggleDriveMode() {
-        switch (getDriveMode()) {
-            case ARCADE:    setDriveMode(DriveMode.TANK);       break;
-            case TANK:      setDriveMode(DriveMode.CURVATURE);  break;
-            case CURVATURE: setDriveMode(DriveMode.ARCADE);     break;
-            default:    break;
-        }
     }
 }

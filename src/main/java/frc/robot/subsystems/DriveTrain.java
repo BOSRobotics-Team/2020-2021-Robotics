@@ -5,6 +5,8 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
@@ -20,13 +22,18 @@ import javax.annotation.Nullable;
 import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
-import com.kauailabs.navx.frc.AHRS;
 
 import frc.robot.Constants;
 import frc.robot.Instrumentation;
-import frc.robot.wrappers.SmartMotor;
+import frc.robot.wrappers.*;
 
 public class DriveTrain extends SubsystemBase {
+
+    public enum DriveMode {
+        ARCADE,
+        TANK,
+        CURVATURE
+    }
 
     public final SmartMotor leftMaster = new SmartMotor(12, TalonFXInvertType.CounterClockwise);
     public final SmartMotor rightMaster = new SmartMotor(13, TalonFXInvertType.Clockwise);
@@ -34,44 +41,45 @@ public class DriveTrain extends SubsystemBase {
     private final WPI_TalonFX rightFollower = new WPI_TalonFX(15);
 
     /** The NavX gyro */
-    private final AHRS ahrs = new AHRS();
+    private final DriveGyro gyro = new DriveGyro();
 
     /** Drivetrain kinematics processor for measuring individual wheel speeds */
     private final DifferentialDriveKinematics driveKinematics = new DifferentialDriveKinematics(Constants.kWidthChassisMeters);
 
     /** Drivetrain odometry tracker for tracking position */
-    private final DifferentialDriveOdometry driveOdometry = new DifferentialDriveOdometry(ahrs.getRotation2d());
+    private final DifferentialDriveOdometry driveOdometry = new DifferentialDriveOdometry(gyro.getHeading());
     public final DifferentialDrive differentialDrive;
-
-    /** Whether or not to use the NavX for driving straight */
-    private boolean overrideGyro = false;
 
     private final Field2d m_field = new Field2d();
 
 //    private boolean voltageCompEnabled = false;
     private Double maxSpeed;
 
+    private DriveMode m_DriveMode = DriveMode.ARCADE;
+    private boolean m_UseSquares = true;
+    private double m_DriveScaling = 1.0;
+
     public DriveTrain() {
 
         leftFollower.configFactoryDefault();
-        leftFollower.follow(leftMaster.getTalon());
+        leftFollower.follow(leftMaster);
         leftFollower.setInverted(InvertType.FollowMaster);
 
         rightFollower.configFactoryDefault();
-        rightFollower.follow(rightMaster.getTalon());
+        rightFollower.follow(rightMaster);
         rightFollower.setInverted(InvertType.FollowMaster);
   
         /* Zero the sensor once on robot boot up */
         resetPosition();
 
-        differentialDrive = new DifferentialDrive(leftMaster.getTalon(), rightMaster.getTalon());
+        differentialDrive = new DifferentialDrive(leftMaster, rightMaster);
         differentialDrive.setRightSideInverted(false);
         differentialDrive.setSafetyEnabled(true);
         differentialDrive.setExpiration(0.1);
         differentialDrive.setMaxOutput(0.75);
         differentialDrive.setDeadband(0.02);
 
-        addChild("Differential Drive 1", differentialDrive);
+        addChild("Differential Drive", differentialDrive);
     }
 
     @Override
@@ -79,10 +87,14 @@ public class DriveTrain extends SubsystemBase {
         // This method will be called once per scheduler run
         updateOdometry();
 
+        leftMaster.update();
+        rightMaster.update();
+
         /* Instrumentation */
-        Instrumentation.ProcessNavX(ahrs);
-        Instrumentation.ProcessTalon(rightMaster.getTalon());
-        updateDashboard();
+        Instrumentation.ProcessGyro(gyro);
+        Instrumentation.ProcessMotor(leftMaster);
+        Instrumentation.ProcessMotor(rightMaster);
+        logPeriodic();
     }
 
     @Override
@@ -168,48 +180,6 @@ public class DriveTrain extends SubsystemBase {
         setPercentVoltage(0, 0);
     }
   
-    /**
-     * Set the robot's heading.
-     * @param heading The heading to set to, in degrees on [-180, 180].
-     */
-    public void setHeadingDegrees(final double heading) {
-        ahrs.setAngleAdjustment(heading);
-    }
-
-    /**
-     * Get the robot's angular velocity.
-     * @return Angular velocity in degrees/sec
-     */
-    public double getAngularVel() {
-        return -ahrs.getRate();
-    }
-
-    /**
-     * Get the robot's angular displacement since being turned on.
-     * @return Angular displacement in degrees.
-     */
-    public double getAngularDisplacement() {
-        return -ahrs.getAngle();
-    }
-
-    /**
-     * Get the pitch value.
-     * @return The pitch, in degrees from [-180, 180]
-     */
-    public double getPitch() {
-        return ahrs.getPitch();
-    }
-
-    /** @return true if the NavX is currently overriden, false otherwise. */
-    public boolean getOverrideGyro() {
-        return overrideGyro;
-    }
-
-    /** @param override true to override the NavX, false to un-override it. */
-    public void setOverrideGyro(final boolean override) {
-        overrideGyro = override;
-    }
-
     /** Reset odometry tracker to current robot pose */
     public void resetOdometry(final Pose2d pose) {
         resetPosition();
@@ -225,7 +195,7 @@ public class DriveTrain extends SubsystemBase {
                              getLeftPos(), 
                              getRightPos());
     
- //       m_field.setRobotPose(driveOdometry.getPoseMeters());
+        m_field.setRobotPose(driveOdometry.getPoseMeters());
     }
 
     /** @return Current estimated pose based on odometry tracker data */
@@ -282,12 +252,9 @@ public class DriveTrain extends SubsystemBase {
     }
            
     public void logPeriodic() {
-        leftMaster.update();
-        rightMaster.update();
-    }
+        leftMaster.logPeriodic();
+        rightMaster.logPeriodic();
 
-    public void updateDashboard()
-    {
         SmartDashboard.putData("Field", m_field);
     }
 
@@ -312,21 +279,28 @@ public class DriveTrain extends SubsystemBase {
     }
 
     public void zeroHeading() {
-        ahrs.reset();
+        gyro.reset();
     }
     public double getHeadingDegrees() {
-        return ahrs.getRotation2d().getDegrees();
+        return gyro.getHeadingDegrees();
     }
     public Rotation2d getHeading() {
-        return ahrs.getRotation2d();
+        return gyro.getHeading();
+    }
+    /**
+     * Set the robot's heading.
+     * @param heading The heading to set to, in degrees on [-180, 180].
+     */
+    public void setHeadingDegrees(final double heading) {
+        gyro.setHeadingDegrees(heading);
     }
 
     public void setMaxOutput(double maxOutput) {
         differentialDrive.setMaxOutput(maxOutput);
     }
     public void setRampRate(double rampTimeSeconds) {
-        leftMaster.getTalon().configOpenloopRamp(rampTimeSeconds);
-        rightMaster.getTalon().configOpenloopRamp(rampTimeSeconds);
+        leftMaster.configOpenloopRamp(rampTimeSeconds);
+        rightMaster.configOpenloopRamp(rampTimeSeconds);
     }
     
     // Put methods for controlling this subsystem here. Call these from Commands.
@@ -348,5 +322,51 @@ public class DriveTrain extends SubsystemBase {
         rightMaster.setVoltage(rightVolts);
         differentialDrive.feed();
     }
-}
+    public void setOutput(XboxController ctrl) {
+        double yLeftStick = -ctrl.getY(Hand.kLeft) * m_DriveScaling;
 
+        if (m_DriveMode == DriveMode.ARCADE) {
+            double xRightStick = ctrl.getX(Hand.kRight) * m_DriveScaling;
+            this.driveArcade(yLeftStick, xRightStick, m_UseSquares);
+        } else if (m_DriveMode == DriveMode.TANK) {
+            double yRightStick = -ctrl.getY(Hand.kRight) * m_DriveScaling;
+            this.driveTank(yLeftStick, yRightStick);
+        } else if (m_DriveMode == DriveMode.CURVATURE) {
+            double xRightStick = ctrl.getX(Hand.kRight) * m_DriveScaling;
+            boolean btnRightStick = ctrl.getStickButton(Hand.kRight);
+            this.driveCurvature(yLeftStick, xRightStick, btnRightStick);
+        }
+    }
+    public void setOutput(double left, double right) {
+        if (m_DriveMode == DriveMode.ARCADE) {
+            this.driveArcade(left, right, m_UseSquares);
+        } else if (m_DriveMode == DriveMode.TANK) {
+            this.driveTank(left, right);
+        } else if (m_DriveMode == DriveMode.CURVATURE) {
+            this.driveCurvature(left, right, false);
+        }
+    }
+    public DriveMode getDriveMode() { return m_DriveMode; }
+    public void setDriveMode(DriveMode mode) {
+        m_DriveMode = mode;
+        SmartDashboard.putString("DriveTrainMode", m_DriveMode.toString());
+    }
+    public boolean getUseSquares() { return m_UseSquares; }
+    public void setUseSquares(boolean use) {
+        m_UseSquares = use;
+        SmartDashboard.putBoolean("UseSquares", m_UseSquares);
+    }
+    public double getDriveScaling() { return m_DriveScaling; }
+    public void setDriveScaling(double scaling) {
+        m_DriveScaling = scaling;
+        SmartDashboard.putNumber("DriveScaling", m_DriveScaling);
+    }
+    public void toggleDriveMode() {
+        switch (m_DriveMode) {
+            case ARCADE:    setDriveMode(DriveMode.TANK);       break;
+            case TANK:      setDriveMode(DriveMode.CURVATURE);  break;
+            case CURVATURE: setDriveMode(DriveMode.ARCADE);     break;
+            default:    break;
+        }
+    }
+}

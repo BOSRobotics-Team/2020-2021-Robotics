@@ -29,24 +29,13 @@ public class CommandKKDriveTrain extends CommandDriveTrain {
     public void execute() {
         boolean leftStickDown = m_controller.getStickButton(Hand.kLeft);
         if (!_wasLeftStickDown && leftStickDown) {
-             if (scaling == 1.0) 
-                scaling = 0.5;
-            else
-                scaling = 1.0;
+            
+            double scaling = m_driveTrain.getDriveScaling() < 1.0 ? 1.0 : 0.5;
+            m_driveTrain.setDriveScaling(scaling);
         }
         _wasLeftStickDown = leftStickDown;
 
-        double y = -m_controller.getY(Hand.kLeft) * scaling;
-        double y2 = -m_controller.getY(Hand.kRight) * scaling;
-        double x = m_controller.getY(Hand.kRight) * scaling;
-
-        if (m_DriveMode == DriveMode.ARCADE) {
-            m_driveTrain.driveArcade(y, x, m_UseSquares);
-        } else if (m_DriveMode == DriveMode.TANK) {
-            m_driveTrain.driveTank(y, y2);
-        } else if (m_DriveMode == DriveMode.CURVATURE) {
-            m_driveTrain.driveCurvature(y, x, m_controller.getStickButton(Hand.kRight));
-        }
+        m_driveTrain.setOutput(m_controller);
 
         //m_driveTrain.logPeriodic();
     }

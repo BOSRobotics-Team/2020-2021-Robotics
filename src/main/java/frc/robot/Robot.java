@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -15,9 +17,23 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
  * project.
  */
 public class Robot extends TimedRobot {
-    Command autonomousCommand;
-
+    private Command autonomousCommand;
     private RobotContainer m_robotContainer;
+
+    /**
+     * The absolute filepath to the resources folder containing the config files when the robot is
+     * real.
+     */
+    public static final String RESOURCES_PATH_REAL = Filesystem.getDeployDirectory().getAbsolutePath();
+    /**
+     * The relative filepath to the resources folder containing the config files when the robot is
+     * simulated.
+     */
+    public static final String RESOURCES_PATH_SIMULATED = "./src/main/deploy/";
+    /**
+     * The filepath to the resources folder containing the config files.
+     */
+    public static final String RESOURCES_PATH = RobotBase.isReal() ? RESOURCES_PATH_REAL : RESOURCES_PATH_SIMULATED;
 
     /**
      * This function is run when the robot is first started up and should be

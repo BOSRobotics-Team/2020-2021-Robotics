@@ -15,14 +15,14 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj.shuffleboard.EventImportance;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 import frc.robot.Convertor;
 
-public class SmartMotor {
+public class SmartMotor extends WPI_TalonFX {
 
     private final int kCountsPerRev = 2048;  //Encoder counts per revolution of the motor shaft.
 
-    final private WPI_TalonFX talon;
     final private Convertor convertor;
 
     private SimpleMotorFeedforward feedForwardCalculator = new SimpleMotorFeedforward(0, 0, 0);
@@ -39,16 +39,16 @@ public class SmartMotor {
     private double nativeSetpoint;
 
     public SmartMotor( int deviceNumber, TalonFXInvertType invert ) {
-        talon = new WPI_TalonFX(deviceNumber);
+        super(deviceNumber);
         convertor = new Convertor(kCountsPerRev);
 
-        talon.configFactoryDefault();
+        this.configFactoryDefault();
 
 		/* Configure Sensor Source for Primary PID */
-        talon.configSelectedFeedbackSensor(TalonFXFeedbackDevice.IntegratedSensor, Constants.kPIDLoopIdx, Constants.kTimeoutMs);
+        this.configSelectedFeedbackSensor(TalonFXFeedbackDevice.IntegratedSensor, Constants.kPIDLoopIdx, Constants.kTimeoutMs);
 
         /* set deadband to super small 0.001 (0.1 %). The default deadband is 0.04 (4 %) */
-        talon.configNeutralDeadband(Constants.kNeutralDeadband, Constants.kTimeoutMs);
+        this.configNeutralDeadband(Constants.kNeutralDeadband, Constants.kTimeoutMs);
 
  		/**
 		 * Configure Talon FX Output and Sensor direction accordingly Invert Motor to
@@ -58,44 +58,41 @@ public class SmartMotor {
 		 * This is because it will always be correct if the selected feedback device is integrated sensor (default value)
 		 * and the user calls getSelectedSensor* to get the sensor's position/velocity.
          */
-        //talon.setSensorPhase(false);
-        talon.setInverted(invert);
+        //this.setSensorPhase(false);
+        this.setInverted(invert);
 
      	/* Set relevant frame periods to be at least as fast as periodic rate */
-        talon.setStatusFramePeriod(StatusFrameEnhanced.Status_13_Base_PIDF0, 10, Constants.kTimeoutMs);
-        talon.setStatusFramePeriod(StatusFrameEnhanced.Status_10_Targets, 10, Constants.kTimeoutMs);
+        this.setStatusFramePeriod(StatusFrameEnhanced.Status_13_Base_PIDF0, 10, Constants.kTimeoutMs);
+        this.setStatusFramePeriod(StatusFrameEnhanced.Status_10_Targets, 10, Constants.kTimeoutMs);
         
         /* Set the peak and nominal outputs */
-		talon.configNominalOutputForward(0, Constants.kTimeoutMs);
-		talon.configNominalOutputReverse(0, Constants.kTimeoutMs);
-		talon.configPeakOutputForward(1, Constants.kTimeoutMs);
-        talon.configPeakOutputReverse(-1, Constants.kTimeoutMs);
+		this.configNominalOutputForward(0, Constants.kTimeoutMs);
+		this.configNominalOutputReverse(0, Constants.kTimeoutMs);
+		this.configPeakOutputForward(1, Constants.kTimeoutMs);
+        this.configPeakOutputReverse(-1, Constants.kTimeoutMs);
         
 		/* Set Motion Magic gains in slot0 - see documentation */
-		talon.selectProfileSlot(Constants.kSlotIdx, Constants.kPIDLoopIdx);
-		talon.config_kP(Constants.kSlotIdx, Constants.kGains_Distanc.kP, Constants.kTimeoutMs);
-		talon.config_kI(Constants.kSlotIdx, Constants.kGains_Distanc.kI, Constants.kTimeoutMs);
-		talon.config_kD(Constants.kSlotIdx, Constants.kGains_Distanc.kD, Constants.kTimeoutMs);
-		talon.config_kF(Constants.kSlotIdx, Constants.kGains_Distanc.kF, Constants.kTimeoutMs);
-		talon.config_IntegralZone(Constants.kSlotIdx, (int)Constants.kGains_Distanc.kIzone, Constants.kTimeoutMs);
-		talon.configMaxIntegralAccumulator(Constants.kSlotIdx, 1.0, Constants.kTimeoutMs);
+		this.selectProfileSlot(Constants.kSlotIdx, Constants.kPIDLoopIdx);
+        this.setClosedLoopGains(Constants.kSlotIdx, 
+            Constants.kGains_Distanc.kP, 
+            Constants.kGains_Distanc.kI, 
+            Constants.kGains_Distanc.kD, 
+            Constants.kGains_Distanc.kF, 
+            Constants.kGains_Distanc.kIzone, 
+            1.0);
 
    		/* Set acceleration and vcruise velocity - see documentation */
-        talon.configMotionCruiseVelocity(15000, Constants.kTimeoutMs);
-        talon.configMotionAcceleration(6000, Constants.kTimeoutMs);
+        this.configMotionCruiseVelocity(15000, Constants.kTimeoutMs);
+        this.configMotionAcceleration(6000, Constants.kTimeoutMs);
     }
 
-    public WPI_TalonFX getTalon() {
-        return talon;
-    }
-
-    public void setClosedLoopGains(double kp, double ki, double kd, double kf, double iZone, double maxIntegral) {
-		talon.config_kP(Constants.kSlotIdx, kp, Constants.kTimeoutMs);
-		talon.config_kI(Constants.kSlotIdx, ki, Constants.kTimeoutMs);
-		talon.config_kD(Constants.kSlotIdx, kd, Constants.kTimeoutMs);
-		talon.config_kF(Constants.kSlotIdx, kf, Constants.kTimeoutMs);
-		talon.config_IntegralZone(Constants.kSlotIdx, (int)iZone, Constants.kTimeoutMs);
-		talon.configMaxIntegralAccumulator(Constants.kSlotIdx, maxIntegral, Constants.kTimeoutMs);
+    public void setClosedLoopGains(int slot, double kp, double ki, double kd, double kf, double iZone, double maxIntegral) {
+		this.config_kP(Constants.kSlotIdx, kp, Constants.kTimeoutMs);
+		this.config_kI(Constants.kSlotIdx, ki, Constants.kTimeoutMs);
+		this.config_kD(Constants.kSlotIdx, kd, Constants.kTimeoutMs);
+		this.config_kF(Constants.kSlotIdx, kf, Constants.kTimeoutMs);
+		this.config_IntegralZone(Constants.kSlotIdx, (int)iZone, Constants.kTimeoutMs);
+		this.configMaxIntegralAccumulator(Constants.kSlotIdx, maxIntegral, Constants.kTimeoutMs);
     }
 
     /**
@@ -105,7 +102,7 @@ public class SmartMotor {
      */
     @Nullable
     public Double getVelocity() {
-        return convertor.nativeUnitsToVelocity(talon.getSelectedSensorVelocity(0));
+        return convertor.nativeUnitsToVelocity(this.getSelectedSensorVelocity(0));
     }
 
     /**
@@ -115,7 +112,7 @@ public class SmartMotor {
      */
     @Nullable
     public Double getPosition() {
-        return convertor.nativeUnitsToDistanceMeters(talon.getSelectedSensorPosition(0));
+        return convertor.nativeUnitsToDistanceMeters(this.getSelectedSensorPosition(0));
     }
 
     /**
@@ -139,14 +136,14 @@ public class SmartMotor {
     }
 
     public void setVoltage(double outputVolts) {
-        talon.setVoltage(outputVolts);
+        this.setVoltage(outputVolts);
     }
     public void set(double outputVolts) {
-        talon.set(outputVolts);
+        this.set(outputVolts);
     }
     public void setTarget(double meters) {
         int targetPos = convertor.distanceMetersToNativeUnits(meters);
-        talon.set(TalonFXControlMode.MotionMagic, targetPos);
+        this.set(TalonFXControlMode.MotionMagic, targetPos);
     }
 
     public void setPercentVoltage(double pctVolts) {
@@ -160,15 +157,15 @@ public class SmartMotor {
                 pctVolts = Math.signum(pctVolts);
         }
         setpoint = pctVolts;
-        talon.set(ControlMode.PercentOutput, pctVolts);
+        this.set(ControlMode.PercentOutput, pctVolts);
     }
     
     public void setVelocityUPS(final double velocity) {
         nativeSetpoint = convertor.velocityToNativeUnits(velocity);
         setpoint = velocity;
 
-        talon.config_kF(0, 0, 0);
-        talon.set(
+        this.config_kF(0, 0, 0);
+        this.set(
             ControlMode.Velocity,
             nativeSetpoint,
             DemandType.ArbitraryFeedForward,
@@ -182,23 +179,20 @@ public class SmartMotor {
         setpoint = pt;
     }
     public double getOutputVoltage() {
-        return talon.getMotorOutputVoltage();
+        return this.getMotorOutputVoltage();
     }
     public double getBatteryVoltage() {
-        return talon.getBusVoltage();
+        return this.getBusVoltage();
     }
     public double getOutputCurrent() {
-        return talon.getSupplyCurrent();
-    }
-    public String getControlMode() {
-        return talon.getControlMode().name();
+        return this.getSupplyCurrent();
     }
     /** Resets the position of the Talon to 0. */
     public void resetPosition() {
-        talon.setSelectedSensorPosition(0, Constants.kPIDLoopIdx, Constants.kTimeoutMs);
+        this.setSelectedSensorPosition(0, Constants.kPIDLoopIdx, Constants.kTimeoutMs);
     }
     public void enableBrakes(boolean enabled) {
-        talon.setNeutralMode(enabled ? NeutralMode.Brake : NeutralMode.Coast);
+        this.setNeutralMode(enabled ? NeutralMode.Brake : NeutralMode.Coast);
     }
 
     /** Updates all cached values with current ones. */
@@ -206,17 +200,36 @@ public class SmartMotor {
         cachedVelocity = getVelocity();
         cachedPosition = getPosition();
 
-        talon.getFaults(faults);
+        this.getFaults(faults);
         if (faults.SensorOutOfPhase) {
-            double leftVelUnitsPer100ms = talon.getSelectedSensorVelocity(0);
+            double leftVelUnitsPer100ms = this.getSelectedSensorVelocity(0);
             System.out.println("sensor is out of phase: " + leftVelUnitsPer100ms);
         }
     }
 
+    public void logPeriodic() {
+        String name = this.getName() + " ";
+
+        SmartDashboard.putNumber(name + " cachePos: ", cachedPosition);
+        SmartDashboard.putNumber(name + " cacheVel: ", cachedVelocity);
+
+        /* Smart dash plots */
+        SmartDashboard.putNumber(name + "SensorVel", this.getSelectedSensorVelocity(Constants.kPIDLoopIdx));
+        SmartDashboard.putNumber(name + "SensorPos", this.getSelectedSensorPosition(Constants.kPIDLoopIdx));
+        SmartDashboard.putNumber(name + "MotorOutputPercent", this.getMotorOutputPercent());
+        SmartDashboard.putNumber(name + "ClosedLoopError", this.getClosedLoopError(Constants.kPIDLoopIdx));
+        SmartDashboard.putString(name + "ControlMode", this.getControlMode().toString());
+        
+        /* Print the Active Trajectory Point Motion Magic is servoing towards */
+        SmartDashboard.putNumber(name + "ClosedLoopTarget", this.getClosedLoopTarget(Constants.kPIDLoopIdx));
+        SmartDashboard.putNumber(name + "ActTrajVelocity", this.getActiveTrajectoryVelocity());
+        SmartDashboard.putNumber(name + "ActTrajPosition", this.getActiveTrajectoryPosition());        
+    }
+
     public void disable() {
-        talon.disable();
+        this.disable();
     }
     public void enable() {
-        talon.set(ControlMode.PercentOutput, 0);
+        this.set(ControlMode.PercentOutput, 0);
     }
 }
