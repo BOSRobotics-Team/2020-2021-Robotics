@@ -38,7 +38,7 @@ public class SimpleUnidirectionalDriveCommand extends CommandBase {
   /** Give output to the motors based on the stick inputs. */
   @Override
   public void execute() {
-    subsystem.setOutput(this.controller);
+    subsystem.drive(this.controller);
   }
 
   /**

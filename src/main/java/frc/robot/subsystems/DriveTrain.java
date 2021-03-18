@@ -58,6 +58,10 @@ public class DriveTrain extends SubsystemBase {
     private DriveMode m_DriveMode = DriveMode.ARCADE;
     private boolean m_UseSquares = true;
     private double m_DriveScaling = 1.0;
+    private boolean m_QuickTurn = false;
+
+    private double _lastLSmoothing = 0.0;
+    private double _lastRSmoothing = 0.0;
 
     public DriveTrain() {
 
@@ -178,6 +182,7 @@ public class DriveTrain extends SubsystemBase {
     /** Completely stop the robot by setting the voltage to each side to be 0. */
     public void fullStop() {
         setPercentVoltage(0, 0);
+        _lastLSmoothing = _lastRSmoothing = 0.0;
     }
   
     /** Reset odometry tracker to current robot pose */
@@ -322,28 +327,27 @@ public class DriveTrain extends SubsystemBase {
         rightMaster.setVoltage(rightVolts);
         differentialDrive.feed();
     }
-    public void setOutput(XboxController ctrl) {
-        double yLeftStick = -ctrl.getY(Hand.kLeft) * m_DriveScaling;
-
+    public void drive(XboxController ctrl) {
         if (m_DriveMode == DriveMode.ARCADE) {
-            double xRightStick = ctrl.getX(Hand.kRight) * m_DriveScaling;
-            this.driveArcade(yLeftStick, xRightStick, m_UseSquares);
+            this.setOutput(-ctrl.getY(Hand.kLeft), ctrl.getX(Hand.kRight));
         } else if (m_DriveMode == DriveMode.TANK) {
-            double yRightStick = -ctrl.getY(Hand.kRight) * m_DriveScaling;
-            this.driveTank(yLeftStick, yRightStick);
+            this.setOutput(-ctrl.getY(Hand.kLeft), -ctrl.getY(Hand.kRight));
         } else if (m_DriveMode == DriveMode.CURVATURE) {
-            double xRightStick = ctrl.getX(Hand.kRight) * m_DriveScaling;
-            boolean btnRightStick = ctrl.getStickButton(Hand.kRight);
-            this.driveCurvature(yLeftStick, xRightStick, btnRightStick);
+            this.setOutput(-ctrl.getY(Hand.kLeft), ctrl.getX(Hand.kRight));
         }
     }
     public void setOutput(double left, double right) {
+        double newleft = (_lastLSmoothing + left) / 2.0;
+        double newRight = (_lastRSmoothing + right) / 2.0;
+        _lastLSmoothing = left;
+        _lastRSmoothing = right;
+
         if (m_DriveMode == DriveMode.ARCADE) {
-            this.driveArcade(left, right, m_UseSquares);
+            this.driveArcade(newleft, newRight, m_UseSquares);
         } else if (m_DriveMode == DriveMode.TANK) {
-            this.driveTank(left, right);
+            this.driveTank(newleft, newRight);
         } else if (m_DriveMode == DriveMode.CURVATURE) {
-            this.driveCurvature(left, right, false);
+            this.driveCurvature(newleft, newRight, m_QuickTurn);
         }
     }
     public DriveMode getDriveMode() { return m_DriveMode; }
@@ -358,8 +362,14 @@ public class DriveTrain extends SubsystemBase {
     }
     public double getDriveScaling() { return m_DriveScaling; }
     public void setDriveScaling(double scaling) {
-        m_DriveScaling = scaling;
+        m_DriveScaling = Math.max(Math.min(scaling, 1.0), 0.1);
+        this.setMaxOutput(m_DriveScaling);
         SmartDashboard.putNumber("DriveScaling", m_DriveScaling);
+    }
+    public boolean getQuickTurn() { return m_QuickTurn; }
+    public void setQuickTurn(boolean turn) {
+        m_QuickTurn = turn;
+        SmartDashboard.putBoolean("UseQuickTurn", m_QuickTurn);
     }
     public void toggleDriveMode() {
         switch (m_DriveMode) {

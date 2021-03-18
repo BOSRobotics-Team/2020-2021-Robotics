@@ -84,7 +84,7 @@ public class RobotContainer {
   public final UsbCamera cam1; 
 
   public final AutonomousCommand m_autoCommand = new AutonomousCommand(this);
-  public final CommandKKDriveTrain m_cmdDriveTrainCommand = new CommandKKDriveTrain(driveTrain, driverController);
+  public final CommandDriveTrain m_cmdDriveTrainCommand = new CommandDriveTrain(driveTrain, driverController);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -119,6 +119,8 @@ public class RobotContainer {
     right_Bumper_Driver.whenPressed(() -> driveTrain.setMaxOutput(0.5))
                        .whenReleased(() -> driveTrain.setMaxOutput(1.0));
     back_Button_Driver.whenPressed(() -> driveTrain.toggleDriveMode());
+    right_Stick_Driver.whenPressed(() -> driveTrain.setUseSquares(!driveTrain.getUseSquares()));
+
     b_Button_Driver.whenPressed(new DriveDistanceProfiledCommand(3, driveTrain).withTimeout(10));
 
     a_Button_Operator.whileHeld(m_extendHookCommand);

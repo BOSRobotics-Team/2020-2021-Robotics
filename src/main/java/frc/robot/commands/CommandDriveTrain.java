@@ -16,7 +16,13 @@ public class CommandDriveTrain extends CommandBase {
 
     public final DriveTrain m_driveTrain;
     public final XboxController m_controller;
-    public boolean _wasLeftStickDown = false;
+
+    private boolean _wasLeftStickDown = false;
+    private boolean _scalingOn = false;
+    private double _scaling = 0.5;
+
+    private boolean _lastTriggerL = false;
+    private boolean _lastTriggerR = false;
 
     public CommandDriveTrain(DriveTrain driveTrain, XboxController controller) {
         m_driveTrain = driveTrain;
@@ -31,20 +37,40 @@ public class CommandDriveTrain extends CommandBase {
     public void initialize() {
         m_driveTrain.setDriveMode(DriveMode.ARCADE);
         m_driveTrain.setUseSquares(true);
+        m_driveTrain.setDriveScaling(_scalingOn ? _scaling : 1.0);
         m_driveTrain.enableBrakes(true);
         m_driveTrain.enableDriveTrain(true);
+
         _wasLeftStickDown = false;
+        _lastTriggerL = _lastTriggerR = false;
     }
 
     // Called repeatedly when this Command is scheduled to run
     @Override
     public void execute() {
         boolean leftStickDown = m_controller.getStickButton(Hand.kLeft);
-        if (!_wasLeftStickDown && leftStickDown) {
-            m_driveTrain.setUseSquares(!m_driveTrain.getUseSquares());
+        if (leftStickDown && !_wasLeftStickDown) {
+            _scalingOn = !_scalingOn;
+            m_driveTrain.setDriveScaling(_scalingOn ? _scaling : 1.0);
         }
         _wasLeftStickDown = leftStickDown;
-        m_driveTrain.setOutput(m_controller);
+
+        double triggerL = m_controller.getTriggerAxis(Hand.kLeft);
+        if ((triggerL >= 0.5) && !_lastTriggerL) { 
+            _scaling = Math.min(_scaling + 0.1, 1.0);
+            m_driveTrain.setDriveScaling(_scalingOn ? _scaling : 1.0);
+        }
+        _lastTriggerL = (triggerL > 0.5);
+
+        double triggerR = m_controller.getTriggerAxis(Hand.kRight);
+        if ((triggerR >= 0.5) && !_lastTriggerR)
+        {
+            _scaling = Math.max(_scaling - 0.1, 0.1);
+            m_driveTrain.setDriveScaling(_scalingOn ? _scaling : 1.0);
+        }
+        _lastTriggerR = (triggerR > 0.5);
+
+        m_driveTrain.drive(m_controller);
 
         //m_driveTrain.logPeriodic();
     }
@@ -53,8 +79,11 @@ public class CommandDriveTrain extends CommandBase {
     @Override
     public void end(boolean interrupted) {
         m_driveTrain.tankDriveVolts(0, 0);
-        m_driveTrain.enableDriveTrain(false);
+        m_driveTrain.setUseSquares(true);
+        m_driveTrain.enableBrakes(true);
+        m_driveTrain.setDriveScaling(1.0);
         m_driveTrain.setDriveMode(DriveMode.ARCADE);
+        m_driveTrain.enableDriveTrain(false);
     }
 
     // Make this return true when this Command no longer needs to run execute()

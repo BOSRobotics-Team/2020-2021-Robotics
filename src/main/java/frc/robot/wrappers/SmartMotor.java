@@ -135,15 +135,8 @@ public class SmartMotor extends WPI_TalonFX {
         return cachedPosition;
     }
 
-    public void setVoltage(double outputVolts) {
-        this.setVoltage(outputVolts);
-    }
-    public void set(double outputVolts) {
-        this.setPercentVoltage(outputVolts);
-    }
     public void setTarget(double meters) {
-        int targetPos = convertor.distanceMetersToNativeUnits(meters);
-        this.set(TalonFXControlMode.MotionMagic, targetPos);
+        this.set(TalonFXControlMode.MotionMagic, convertor.distanceMetersToNativeUnits(meters));
     }
 
     public void setPercentVoltage(double pctVolts) {
@@ -157,6 +150,7 @@ public class SmartMotor extends WPI_TalonFX {
                 pctVolts = Math.signum(pctVolts);
         }
         setpoint = pctVolts;
+
         this.set(ControlMode.PercentOutput, pctVolts);
     }
     
@@ -226,9 +220,6 @@ public class SmartMotor extends WPI_TalonFX {
         SmartDashboard.putNumber(name + "ActTrajPosition", this.getActiveTrajectoryPosition());        
     }
 
-    public void disable() {
-        this.disable();
-    }
     public void enable() {
         this.set(ControlMode.PercentOutput, 0);
     }
