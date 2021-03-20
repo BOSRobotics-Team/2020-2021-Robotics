@@ -216,8 +216,8 @@ public class SmartMotor extends WPI_TalonFX {
         
         /* Print the Active Trajectory Point Motion Magic is servoing towards */
 //        SmartDashboard.putNumber(name + "ClosedLoopTarget", this.getClosedLoopTarget(Constants.kPIDLoopIdx));
-        SmartDashboard.putNumber(name + "ActTrajVelocity", this.getActiveTrajectoryVelocity());
-        SmartDashboard.putNumber(name + "ActTrajPosition", this.getActiveTrajectoryPosition());        
+//        SmartDashboard.putNumber(name + "ActTrajVelocity", this.getActiveTrajectoryVelocity());
+//        SmartDashboard.putNumber(name + "ActTrajPosition", this.getActiveTrajectoryPosition());        
     }
 
     public void enable() {
