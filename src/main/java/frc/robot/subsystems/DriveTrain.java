@@ -35,10 +35,10 @@ public class DriveTrain extends SubsystemBase {
         CURVATURE
     }
 
-    public final SmartMotor leftMaster = new SmartMotor(12, TalonFXInvertType.CounterClockwise);
-    public final SmartMotor rightMaster = new SmartMotor(13, TalonFXInvertType.Clockwise);
-    private final WPI_TalonFX leftFollower = new WPI_TalonFX(14);
-    private final WPI_TalonFX rightFollower = new WPI_TalonFX(15);
+    public final SmartMotor rightMaster = new SmartMotor(12, TalonFXInvertType.Clockwise);
+    public final SmartMotor leftMaster = new SmartMotor(13, TalonFXInvertType.CounterClockwise);
+    private final WPI_TalonFX rightFollower = new WPI_TalonFX(14);
+    private final WPI_TalonFX leftFollower = new WPI_TalonFX(15);
 
     /** The NavX gyro */
     private final DriveGyro gyro = new DriveGyro();
