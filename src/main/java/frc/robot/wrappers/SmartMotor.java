@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 import frc.robot.Convertor;
+import frc.robot.Gains;
 
 public class SmartMotor extends WPI_TalonFX {
 
@@ -73,26 +74,21 @@ public class SmartMotor extends WPI_TalonFX {
         
 		/* Set Motion Magic gains in slot0 - see documentation */
 		this.selectProfileSlot(Constants.kSlotIdx, Constants.kPIDLoopIdx);
-        this.setClosedLoopGains(Constants.kSlotIdx, 
-            Constants.kGains_Distanc.kP, 
-            Constants.kGains_Distanc.kI, 
-            Constants.kGains_Distanc.kD, 
-            Constants.kGains_Distanc.kF, 
-            Constants.kGains_Distanc.kIzone, 
-            1.0);
+        this.setClosedLoopGains(Constants.kSlotIdx, Constants.kGains_Distanc); 
 
    		/* Set acceleration and vcruise velocity - see documentation */
         this.configMotionCruiseVelocity(15000, Constants.kTimeoutMs);
         this.configMotionAcceleration(6000, Constants.kTimeoutMs);
     }
 
-    public void setClosedLoopGains(int slot, double kp, double ki, double kd, double kf, double iZone, double maxIntegral) {
-		this.config_kP(Constants.kSlotIdx, kp, Constants.kTimeoutMs);
-		this.config_kI(Constants.kSlotIdx, ki, Constants.kTimeoutMs);
-		this.config_kD(Constants.kSlotIdx, kd, Constants.kTimeoutMs);
-		this.config_kF(Constants.kSlotIdx, kf, Constants.kTimeoutMs);
-		this.config_IntegralZone(Constants.kSlotIdx, (int)iZone, Constants.kTimeoutMs);
-		this.configMaxIntegralAccumulator(Constants.kSlotIdx, maxIntegral, Constants.kTimeoutMs);
+    public void setClosedLoopGains(int slot, Gains gain ) {
+		this.config_kP(slot, gain.kP, Constants.kTimeoutMs);
+		this.config_kI(slot, gain.kI, Constants.kTimeoutMs);
+		this.config_kD(slot, gain.kD, Constants.kTimeoutMs);
+		this.config_kF(slot, gain.kF, Constants.kTimeoutMs);
+		this.config_IntegralZone(slot, gain.kIzone, Constants.kTimeoutMs);
+		this.configClosedLoopPeakOutput(slot, Constants.kGains_Distanc.kPeakOutput);
+//		this.configMaxIntegralAccumulator(slot, gain. maxIntegral, Constants.kTimeoutMs);
     }
 
     /**
@@ -137,6 +133,9 @@ public class SmartMotor extends WPI_TalonFX {
 
     public void setTarget(double meters) {
         this.set(TalonFXControlMode.MotionMagic, convertor.distanceMetersToNativeUnits(meters));
+    }
+    public void setTarget(double meters, double aux) {
+        this.set(TalonFXControlMode.MotionMagic, convertor.distanceMetersToNativeUnits(meters), DemandType.AuxPID, aux);
     }
 
     public void setPercentVoltage(double pctVolts) {

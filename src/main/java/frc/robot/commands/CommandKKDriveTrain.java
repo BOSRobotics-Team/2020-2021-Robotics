@@ -20,8 +20,6 @@ public class CommandKKDriveTrain extends CommandDriveTrain {
     private SmoothingOption _selectedSmoothingOption = SmoothingOption.OPTION1;
     private double _lastX1, _lastX2 = 0.0;
     private double _lastY1, _lastY2 = 0.0;
-    private boolean wasBButtonPressed = false;
-
 
     public CommandKKDriveTrain(DriveTrain driveTrain, XboxController controller) {
         super(driveTrain, controller);
@@ -34,7 +32,6 @@ public class CommandKKDriveTrain extends CommandDriveTrain {
         super.initialize();
 
         _lastX1 = _lastX2 = _lastY1 = _lastY2 = 0.0;
-        wasBButtonPressed = false;
     }
 
     // Called repeatedly when this Command is scheduled to run
@@ -43,9 +40,7 @@ public class CommandKKDriveTrain extends CommandDriveTrain {
 
         m_driveTrain.drive(m_controller);
 
-        boolean bButton = m_controller.getBButtonPressed();
-
-        if (bButton && !wasBButtonPressed)
+        if (m_controller.getBButtonPressed())
             toggleSmoothing();
 
         double yLeft = -m_controller.getY(Hand.kLeft);

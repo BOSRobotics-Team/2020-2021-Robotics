@@ -95,6 +95,8 @@ public class RobotContainer {
     
     // Add commands to Autonomous Sendable Chooser
     chooser.setDefaultOption("Autonomous Command", m_autoCommand);
+    chooser.addOption("AutoDriveStraight Command", new AutoDriveStraightCommand(this));
+    chooser.addOption("AutoDriveTurn Command", new AutoDriveTurnCommand(this));
 
     // SmartDashboard Buttons
     SmartDashboard.putData("Autonomous Command", m_autoCommand);

@@ -10,8 +10,6 @@ public class DriveGyro extends AHRS {
     /** Whether or not to use the NavX for driving straight */
     private boolean overrideGyro = false;
 
-
-
     /**
      * Set the robot's heading.
      * @param heading The heading to set to, in degrees on [-180, 180].

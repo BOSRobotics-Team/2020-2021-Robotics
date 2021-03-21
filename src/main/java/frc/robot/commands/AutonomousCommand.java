@@ -40,9 +40,7 @@ public class AutonomousCommand extends CommandBase {
         _robot = container;
         _driveTrain = _robot.driveTrain;
 
-        System.out.println("AutonomousCommand - constructor");
-        //addParallel(container.m_spinupShooterCommand);
-        //addSequential(container.m_runHopperAutoCommand);
+		addRequirements(_driveTrain);
     }
    
     // Called just before this Command runs the first time
@@ -51,8 +49,8 @@ public class AutonomousCommand extends CommandBase {
     public void initialize() {
         System.out.println("AutonomousCommand - initialize");
 
-        _driveTrain.tankDriveVolts(0, 0);
-        _driveTrain.enableBrakes(true);
+        _driveTrain.enableDriveTrain(false);
+        _driveTrain.enableBrakes(false);
 
         _driveTrain.leftMaster.getAllConfigs(_leftConfig);
         _driveTrain.rightMaster.getAllConfigs(_rightConfig);
@@ -156,7 +154,6 @@ public class AutonomousCommand extends CommandBase {
         _lockedDistance = _driveTrain.rightMaster.getSelectedSensorPosition(0);
    
         System.out.println("_lockedDistance = " + _lockedDistance + " _targetAngle = " + _targetAngle);
-        _driveTrain.enableDriveTrain(true);
     }
 
     // Called repeatedly when this Command is scheduled to run

@@ -17,7 +17,6 @@ public class CommandDriveTrain extends CommandBase {
     public final DriveTrain m_driveTrain;
     public final XboxController m_controller;
 
-    private boolean _wasLeftStickDown = false;
     private boolean _scalingOn = false;
     private double _scaling = 0.5;
 
@@ -41,19 +40,16 @@ public class CommandDriveTrain extends CommandBase {
         m_driveTrain.enableBrakes(true);
         m_driveTrain.enableDriveTrain(true);
 
-        _wasLeftStickDown = false;
         _lastTriggerL = _lastTriggerR = false;
     }
 
     // Called repeatedly when this Command is scheduled to run
     @Override
     public void execute() {
-        boolean leftStickDown = m_controller.getStickButton(Hand.kLeft);
-        if (leftStickDown && !_wasLeftStickDown) {
+        if (m_controller.getStickButtonPressed(Hand.kLeft)) {
             _scalingOn = !_scalingOn;
             m_driveTrain.setDriveScaling(_scalingOn ? _scaling : 1.0);
         }
-        _wasLeftStickDown = leftStickDown;
 
         double triggerL = m_controller.getTriggerAxis(Hand.kLeft);
         if ((triggerL >= 0.5) && !_lastTriggerL) { 
