@@ -90,7 +90,7 @@ public class DrivePathWeaverCommand extends CommandBase {
 
     mRamseteCommand =
     new RamseteCommand(
-        exampleTrajectory,
+        m_trajectory,
         m_driveTrain::getCurrentPose,
         new RamseteController(Constants.kRamseteB, Constants.kRamseteZeta),
         new SimpleMotorFeedforward(
@@ -105,7 +105,7 @@ public class DrivePathWeaverCommand extends CommandBase {
         m_driveTrain::tankDriveVolts,
         m_driveTrain);
 
-        m_driveTrain.resetOdometry(exampleTrajectory.getInitialPose());
+        m_driveTrain.resetOdometry(m_trajectory.getInitialPose());
   }
 
   // Called repeatedly when this Command is scheduled to run
