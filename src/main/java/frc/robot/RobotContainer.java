@@ -97,9 +97,13 @@ public class RobotContainer {
     chooser.setDefaultOption("Autonomous Command", m_autoCommand);
     chooser.addOption("AutoDriveStraight Command", new AutoDriveStraightCommand(this));
     chooser.addOption("AutoDriveTurn Command", new AutoDriveTurnCommand(this));
+    chooser.addOption("PathWeaver Command", new DrivePathWeaverCommand( "paths/PathWeaver/Paths/BarrelRun", driveTrain));
 
     // SmartDashboard Buttons
-    SmartDashboard.putData("Autonomous Command", m_autoCommand);
+    SmartDashboard.putData("Autonomous Command",m_autoCommand);
+    SmartDashboard.putData("Autonomous AutoDriveStraight",new AutoDriveStraightCommand(this));
+    SmartDashboard.putData("Autonomous AutoDrive", new AutoDriveTurnCommand(this));
+    SmartDashboard.putData("DrivePathWeaverCommand", new DrivePathWeaverCommand( "paths/PathWeaver/Paths/BarrelRun", driveTrain));
     SmartDashboard.putData("CommandDriveTrain", m_cmdDriveTrainCommand);
     SmartDashboard.putData("Auto mode", chooser);
 
@@ -141,7 +145,7 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     // An ExampleCommand will run in autonomous
-    return m_autoCommand;
+    return chooser.getSelected();
   }
 
   public XboxController getDriverController() {

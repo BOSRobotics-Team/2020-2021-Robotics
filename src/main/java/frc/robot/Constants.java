@@ -49,8 +49,8 @@ public class Constants {
      * Not all set of Gains are used in this project and may be removed as desired.
      * 
 	 * 	                                    			  kP   kI   kD   kF               Iz    PeakOut */
-	public final static Gains kGains_Distanc = new Gains( 0.1, 0.0,  0.0, 0.0,            100,  0.50 );
-	public final static Gains kGains_Turning = new Gains( 0.2, 0.0,  0.0, 0.0,            200,  1.00 );
+	public final static Gains kGains_Distanc = new Gains( 0.1, 0.0,  0.0, 0.0,            100,  0.80 );
+	public final static Gains kGains_Turning = new Gains( 0.1, 0.0,  0.0, 0.0,            200,  0.75 );
 	public final static Gains kGains_Velocit = new Gains( 0.1, 0.0, 20.0, 1023.0/6800.0,  300,  0.50 );
 	public final static Gains kGains_MotProf = new Gains( 1.0, 0.0,  0.0, 1023.0/6800.0,  400,  1.00 );
 	
@@ -72,8 +72,8 @@ public class Constants {
 	public final static int kSlot_Velocit = SLOT_2;
 	public final static int kSlot_MotProf = SLOT_3;
 
-	public final static double kMaxSpeedMetersPerSecond = 3;
-	public final static double kMaxAccelerationMetersPerSecondSquared = 3;
+	public final static double kMaxSpeedMetersPerSecond = 5;
+	public final static double kMaxAccelerationMetersPerSecondSquared = 2;
 	
 
 

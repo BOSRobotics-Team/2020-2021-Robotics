@@ -65,13 +65,19 @@ public class DriveTrain extends SubsystemBase {
 
     public DriveTrain() {
 
+        leftMaster.setName("Left");
+        rightMaster.setName("Right");
+        gyro.setName("Gyro");
+
         leftFollower.configFactoryDefault();
         leftFollower.follow(leftMaster);
         leftFollower.setInverted(InvertType.FollowMaster);
+        leftFollower.setName("LeftFollow");
 
         rightFollower.configFactoryDefault();
         rightFollower.follow(rightMaster);
         rightFollower.setInverted(InvertType.FollowMaster);
+        rightFollower.setName("RightFollow");
   
         /* Zero the sensor once on robot boot up */
         resetPosition();
@@ -88,17 +94,6 @@ public class DriveTrain extends SubsystemBase {
 
     @Override
     public void periodic() {
-        // This method will be called once per scheduler run
-        updateOdometry();
-
-        leftMaster.update();
-        rightMaster.update();
-
-        /* Instrumentation */
-        Instrumentation.ProcessGyro(gyro);
-        Instrumentation.ProcessMotor(leftMaster);
-        Instrumentation.ProcessMotor(rightMaster);
-        logPeriodic();
     }
 
     @Override
@@ -196,11 +191,15 @@ public class DriveTrain extends SubsystemBase {
     /** Update odometry tracker with current heading, and encoder readings */
     public void updateOdometry() {
         // need to convert to meters
-        driveOdometry.update(getHeading(), 
+        double angle = ((getRightPos() - getLeftPos()) * (180.0 / Math.PI)) / Constants.kWidthChassisMeters;
+
+        driveOdometry.update(Rotation2d.fromDegrees(angle), //getHeading(), 
                              getLeftPos(), 
                              getRightPos());
     
         m_field.setRobotPose(driveOdometry.getPoseMeters());
+        SmartDashboard.putString("Heading", driveOdometry.getPoseMeters().getRotation().toString());
+
     }
 
     /** @return Current estimated pose based on odometry tracker data */
@@ -257,10 +256,22 @@ public class DriveTrain extends SubsystemBase {
     }
            
     public void logPeriodic() {
-        leftMaster.logPeriodic();
-        rightMaster.logPeriodic();
+       // This method will be called once per scheduler run
+       updateOdometry();
 
-        SmartDashboard.putData("Field", m_field);
+       leftMaster.update();
+       rightMaster.update();
+
+       /* Instrumentation */
+//       Instrumentation.ProcessGyro(gyro);
+//       Instrumentation.ProcessMotor(leftMaster);
+//       Instrumentation.ProcessMotor(rightMaster);
+
+       gyro.logPeriodic();
+       leftMaster.logPeriodic();
+       rightMaster.logPeriodic();
+
+        SmartDashboard.putData("Field2d", m_field);
     }
 
     public void enableDriveTrain(boolean enable) {

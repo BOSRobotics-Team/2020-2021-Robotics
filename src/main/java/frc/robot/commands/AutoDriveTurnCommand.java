@@ -9,6 +9,7 @@ import com.ctre.phoenix.motorcontrol.can.*;
 
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.*;
@@ -84,7 +85,7 @@ public class AutoDriveTurnCommand extends CommandBase {
 		_driveTrain.setHeadingDegrees(0);
 		
 		_lockedDistance = 10.0;
-		_targetAngle = 3600 * (90.0 / 360.0);
+		_targetAngle = -360000 * (90.0 / 360.0);
 		_gotoEnd = true;
 
 		SmartDashboard.putNumber("Smoothing", _smoothing);
@@ -95,10 +96,10 @@ public class AutoDriveTurnCommand extends CommandBase {
     public void execute() {
 		System.out.println("AutoDriveTurnCommand - execute");
 
-		if (_controller.getBButtonPressed()) {
+		if (_controller.getStartButtonPressed()) {
 			_gotoEnd = !_gotoEnd;
 			_lockedDistance = _gotoEnd ? 10.0 : 0.0;
-			_targetAngle = _gotoEnd ? 3600 * (90.0 / 360.0) : 0.0;
+			_targetAngle = _gotoEnd ? -360000 * (90.0 / 360.0) : 0.0;
 		}
 		if (_controller.getBumperPressed(Hand.kLeft)) {
 			if (--_smoothing < 0) _smoothing = 0; // Cap smoothing
@@ -114,8 +115,12 @@ public class AutoDriveTurnCommand extends CommandBase {
 		/* Configured for MotionMagic on Integrated Sensors' Sum and Auxiliary PID on Integrated Sensors' Difference */
 		_driveTrain.rightMaster.setTarget(_lockedDistance, _targetAngle);
 		_driveTrain.leftMaster.follow(_driveTrain.rightMaster, FollowerType.AuxOutput1);
+		_driveTrain.logPeriodic();
 		
-        System.out.println("target (meters) = " + _lockedDistance + " angle: " + _targetAngle);
+		SmartDashboard.putNumber("PoseX", _driveTrain.getCurrentPose().getTranslation().getX());
+		SmartDashboard.putNumber("PoseY", _driveTrain.getCurrentPose().getTranslation().getY());
+		SmartDashboard.putNumber("Pose Rot", _driveTrain.getCurrentPose().getRotation().getDegrees());
+		System.out.println("target (meters) = " + _lockedDistance + " angle: " + _targetAngle);
     }
 
     // Called once after isFinished returns true

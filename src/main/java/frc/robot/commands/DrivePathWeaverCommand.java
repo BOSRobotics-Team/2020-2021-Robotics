@@ -41,6 +41,8 @@ public class DrivePathWeaverCommand extends CommandBase {
   public DrivePathWeaverCommand(String pathFilename, DriveTrain drive) {
     m_driveTrain = drive;
     m_pathFilename = pathFilename; // "paths/YourPath.wpilib.json";
+
+    addRequirements(m_driveTrain);
   }
 
   // Called just before this Command runs the first time
@@ -67,7 +69,7 @@ public class DrivePathWeaverCommand extends CommandBase {
     // Apply the voltage constraint
     .addConstraint(constraint);
 
-    this.readPathWeaverFile(m_pathFilename);
+    //this.readPathWeaverFile(m_pathFilename);
 
     m_trajectory = TrajectoryGenerator.generateTrajectory(
         // Start at the origin facing the +X direction
@@ -115,7 +117,7 @@ public class DrivePathWeaverCommand extends CommandBase {
 
     mRamseteCommand.execute();
     //m_driveTrain.drive(m_controller);
-    //m_driveTrain.logPeriodic();
+    m_driveTrain.logPeriodic();
   }
 
   // Called once after isFinished returns true

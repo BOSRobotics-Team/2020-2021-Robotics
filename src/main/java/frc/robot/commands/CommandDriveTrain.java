@@ -68,7 +68,7 @@ public class CommandDriveTrain extends CommandBase {
 
         m_driveTrain.drive(m_controller);
 
-        //m_driveTrain.logPeriodic();
+        m_driveTrain.logPeriodic();
     }
 
     // Called once after isFinished returns true

@@ -104,9 +104,12 @@ public class AutoDriveStraightCommand extends CommandBase {
 
 		/* Configured for MotionMagic on Integrated Sensors' Sum and Auxiliary PID on Integrated Sensors' Difference */
         _driveTrain.leftMaster.setTarget(_lockedDistance);
-        _driveTrain.rightMaster.setTarget(_lockedDistance);
+		_driveTrain.rightMaster.setTarget(_lockedDistance);
+		_driveTrain.logPeriodic();
+			
         System.out.println("target (meters) = " + _lockedDistance);
-    }
+  
+	}
 
     // Called once after isFinished returns true
     @Override
