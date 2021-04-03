@@ -106,6 +106,7 @@ public class DrivePathWeaverCommand extends CommandBase {
         m_driveTrain);
 
         m_driveTrain.resetOdometry(m_trajectory.getInitialPose());
+        mRamseteCommand.initialize();
   }
 
   // Called repeatedly when this Command is scheduled to run
@@ -126,12 +127,14 @@ public class DrivePathWeaverCommand extends CommandBase {
     m_driveTrain.setDriveScaling(1.0);
     m_driveTrain.setDriveMode(DriveMode.ARCADE);
     m_driveTrain.enableDriveTrain(false);
+    mRamseteCommand.end(interrupted);
+
 }
 
  // Make this return true when this Command no longer needs to run execute()
   @Override
   public boolean isFinished() {
-    return false;
+    return mRamseteCommand.isFinished();
   }
 
   public void readPathWeaverFile(String trajectoryJSON)
