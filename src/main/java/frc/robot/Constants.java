@@ -73,5 +73,20 @@ public class Constants {
 	public final static int kSlot_MotProf = SLOT_3;
 
 	public final static double kMaxSpeedMetersPerSecond = 3;
-    public final static double kMaxAccelerationMetersPerSecondSquared = 3;
+	public final static double kMaxAccelerationMetersPerSecondSquared = 3;
+	
+
+
+	// These characterization values MUST be determined either experimentally or theoretically
+    // for *your* robot's drive.
+    // The Robot Characterization Toolsuite provides a convenient tool for obtaining these
+    // values for your robot.
+    public static final double ksVolts = 0.22;
+    public static final double kvVoltSecondsPerMeter = 1.98;
+    public static final double kaVoltSecondsSquaredPerMeter = 0.2;
+    public static final double kPDriveVel = 8.5;
+    // Reasonable baseline values for a RAMSETE follower in units of meters and seconds
+    public static final double kRamseteB = 2;
+    public static final double kRamseteZeta = 0.7;
+
 }
