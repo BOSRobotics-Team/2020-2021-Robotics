@@ -42,7 +42,12 @@ public class Constants {
 	 * Take the average of the two.
 	 */
 	public final static int kEncoderUnitsPerRotation = 51711;
-
+	/**
+	 * Using the configSelectedFeedbackCoefficient() function, scale units to 3600 per rotation.
+	 * This is nice as it keeps 0.1 degrees of resolution, and is fairly intuitive.
+	 */
+	public final static double kTurnTravelUnitsPerRotation = 3600.0;
+	
 	/**
 	 * PID Gains may have to be adjusted based on the responsiveness of control loop.
      * kF: 1023 represents output value to Talon at 100%, 6800 represents Velocity units at 100% output

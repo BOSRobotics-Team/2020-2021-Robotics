@@ -10,6 +10,7 @@ import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
+import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
 import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
@@ -87,9 +88,85 @@ public class SmartMotor extends WPI_TalonFX {
 		this.config_kD(slot, gain.kD, Constants.kTimeoutMs);
 		this.config_kF(slot, gain.kF, Constants.kTimeoutMs);
 		this.config_IntegralZone(slot, gain.kIzone, Constants.kTimeoutMs);
-		this.configClosedLoopPeakOutput(slot, Constants.kGains_Distanc.kPeakOutput);
+		this.configClosedLoopPeakOutput(slot, gain.kPeakOutput);
 //		this.configMaxIntegralAccumulator(slot, gain. maxIntegral, Constants.kTimeoutMs);
     }
+	
+    public void setDistanceConfigs(TalonFXConfiguration talonConfig, Gains gains) {
+		/* Configure the left Talon's selected sensor as local Integrated Sensor */
+		talonConfig.primaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice();	// Local Feedback Source
+		talonConfig.neutralDeadband = Constants.kNeutralDeadband;
+
+		/**
+		 * Max out the peak output (for all modes).  
+		 * However you can limit the output of a given PID object with configClosedLoopPeakOutput().
+		 */
+		talonConfig.nominalOutputForward = 0.0;
+		talonConfig.nominalOutputReverse = 0.0;
+		talonConfig.peakOutputForward = +1.0;
+		talonConfig.peakOutputReverse = -1.0;
+
+		/* FPID Gains for distance servo */
+		talonConfig.slot0.kP = gains.kP;
+		talonConfig.slot0.kI = gains.kI;
+		talonConfig.slot0.kD = gains.kD;
+		talonConfig.slot0.kF = gains.kF;
+		talonConfig.slot0.integralZone = gains.kIzone;
+		talonConfig.slot0.closedLoopPeakOutput = gains.kPeakOutput;
+		talonConfig.slot0.allowableClosedloopError = 0;
+
+		int closedLoopTimeMs = 1;
+		talonConfig.slot0.closedLoopPeriod = closedLoopTimeMs;
+
+		/* Motion Magic Configurations */
+		talonConfig.motionAcceleration = 6000;
+		talonConfig.motionCruiseVelocity = 15000;
+
+		/* Check if we're inverted */
+		if (this.getInverted()) {
+			talonConfig.diff0Term = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice(); //Local Integrated Sensor
+			talonConfig.diff1Term = TalonFXFeedbackDevice.RemoteSensor0.toFeedbackDevice();   //Aux Selected Sensor
+			//masterConfig.primaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.SensorDifference.toFeedbackDevice(); //Diff0 - Diff1
+		} else {
+			/* Master is not inverted, both sides are positive so we can sum them. */
+			talonConfig.sum0Term = TalonFXFeedbackDevice.RemoteSensor0.toFeedbackDevice();    //Aux Selected Sensor
+			talonConfig.sum1Term = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice(); //Local IntegratedSensor
+			//masterConfig.primaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.SensorSum.toFeedbackDevice(); //Sum0 + Sum1
+		}
+		/* Since the Distance is the sum of the two sides, divide by 2 so the total isn't double  the real-world value */
+		//masterConfig.primaryPID.selectedFeedbackCoefficient = 0.5;
+	 }
+	 public void setTurnConfigs(TalonFXConfiguration talonConfig, Gains gains) {
+		/* FPID Gains for distance servo */
+		talonConfig.slot1.kP = gains.kP;
+		talonConfig.slot1.kI = gains.kI;
+		talonConfig.slot1.kD = gains.kD;
+		talonConfig.slot1.kF = gains.kF;
+		talonConfig.slot1.integralZone = gains.kIzone;
+		talonConfig.slot1.closedLoopPeakOutput = gains.kPeakOutput;
+		talonConfig.slot1.allowableClosedloopError = 0;
+
+		int closedLoopTimeMs = 1;
+		talonConfig.slot1.closedLoopPeriod = closedLoopTimeMs;
+
+		/* Check if we're inverted */
+		if (this.getInverted()) {
+			talonConfig.sum0Term = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice(); //Local Integrated Sensor
+			talonConfig.sum1Term = TalonFXFeedbackDevice.RemoteSensor0.toFeedbackDevice();   //Aux Selected Sensor
+			talonConfig.auxiliaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.SensorSum.toFeedbackDevice(); //Sum0 + Sum1
+			talonConfig.auxPIDPolarity = true;
+		} else {
+			/* Master is not inverted, both sides are positive so we can diff them. */
+			talonConfig.diff0Term = TalonFXFeedbackDevice.RemoteSensor1.toFeedbackDevice();    //Aux Selected Sensor
+			talonConfig.diff1Term = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice(); //Local IntegratedSensor
+			talonConfig.auxiliaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.SensorDifference.toFeedbackDevice(); //Sum0 + Sum1
+			/* With current diff terms, a counterclockwise rotation results in negative heading with a right master */
+			talonConfig.auxPIDPolarity = true;
+		}
+		talonConfig.auxiliaryPID.selectedFeedbackCoefficient = Constants.kTurnTravelUnitsPerRotation / Constants.kEncoderUnitsPerRotation;
+	 }
+
+
 
     /**
      * Get the velocity of the drive.

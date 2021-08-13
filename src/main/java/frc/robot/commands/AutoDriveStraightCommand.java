@@ -53,8 +53,8 @@ public class AutoDriveStraightCommand extends CommandBase {
         System.out.println("AutoDriveStraightCommand - leftConfig(before): " + _leftConfig);
         System.out.println("AutoDriveStraightCommand - rightConfig(before): " + _rightConfig);
 
-		setRobotDistanceConfigs(_driveTrain.leftMaster.getInverted(), _leftConfig);
-		setRobotDistanceConfigs(_driveTrain.rightMaster.getInverted(), _rightConfig);
+		_driveTrain.leftMaster.setDistanceConfigs(_leftConfig, Constants.kGains_Distanc);
+		_driveTrain.rightMaster.setDistanceConfigs(_rightConfig, Constants.kGains_Distanc);
 
         System.out.println("AutoDriveStraightCommand - LeftConfig(to set): " + _leftConfig);
         System.out.println("AutoDriveStraightCommand - RightConfig(to set): " + _rightConfig);
@@ -73,7 +73,7 @@ public class AutoDriveStraightCommand extends CommandBase {
         _driveTrain.leftMaster.resetPosition();
 		_driveTrain.rightMaster.resetPosition();
 		
-		_lockedDistance = 10.0;
+		_lockedDistance = 5.0;
 		_gotoEnd = true;
 
 		SmartDashboard.putNumber("Smoothing", _smoothing);
@@ -86,7 +86,7 @@ public class AutoDriveStraightCommand extends CommandBase {
 
 		if (_controller.getBButtonPressed()) {
 			_gotoEnd = !_gotoEnd;
-			_lockedDistance = _gotoEnd ? 10.0 : 0.0;
+			_lockedDistance = _gotoEnd ? 5.0 : 0.0;
 		}
 		if (_controller.getBumperPressed(Hand.kLeft)) {
 			if (--_smoothing < 0) _smoothing = 0; // Cap smoothing
@@ -126,50 +126,4 @@ public class AutoDriveStraightCommand extends CommandBase {
 
         return false;
     }
-
-    void setRobotDistanceConfigs(boolean inverted, TalonFXConfiguration masterConfig) {
-		/* Configure the left Talon's selected sensor as local Integrated Sensor */
-		masterConfig.primaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice();	// Local Feedback Source
-		masterConfig.neutralDeadband = Constants.kNeutralDeadband;
-
-		/**
-		 * Max out the peak output (for all modes).  
-		 * However you can limit the output of a given PID object with configClosedLoopPeakOutput().
-		 */
-		masterConfig.nominalOutputForward = 0.0;
-		masterConfig.nominalOutputReverse = 0.0;
-		masterConfig.peakOutputForward = +1.0;
-		masterConfig.peakOutputReverse = -1.0;
-
-		/* FPID Gains for distance servo */
-		masterConfig.slot0.kP = Constants.kGains_Distanc.kP;
-		masterConfig.slot0.kI = Constants.kGains_Distanc.kI;
-		masterConfig.slot0.kD = Constants.kGains_Distanc.kD;
-		masterConfig.slot0.kF = Constants.kGains_Distanc.kF;
-		masterConfig.slot0.integralZone = Constants.kGains_Distanc.kIzone;
-		masterConfig.slot0.closedLoopPeakOutput = Constants.kGains_Distanc.kPeakOutput;
-		masterConfig.slot0.allowableClosedloopError = 0;
-
-		int closedLoopTimeMs = 1;
-		masterConfig.slot0.closedLoopPeriod = closedLoopTimeMs;
-
-		/* Motion Magic Configurations */
-		masterConfig.motionAcceleration = 6000;
-		masterConfig.motionCruiseVelocity = 15000;
-
-		/* Check if we're inverted */
-		if (inverted) {
-			masterConfig.diff0Term = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice(); //Local Integrated Sensor
-			masterConfig.diff1Term = TalonFXFeedbackDevice.RemoteSensor0.toFeedbackDevice();   //Aux Selected Sensor
-			//masterConfig.primaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.SensorDifference.toFeedbackDevice(); //Diff0 - Diff1
-		} else {
-			/* Master is not inverted, both sides are positive so we can sum them. */
-			masterConfig.sum0Term = TalonFXFeedbackDevice.RemoteSensor0.toFeedbackDevice();    //Aux Selected Sensor
-			masterConfig.sum1Term = TalonFXFeedbackDevice.IntegratedSensor.toFeedbackDevice(); //Local IntegratedSensor
-			//masterConfig.primaryPID.selectedFeedbackSensor = TalonFXFeedbackDevice.SensorSum.toFeedbackDevice(); //Sum0 + Sum1
-		}
-		/* Since the Distance is the sum of the two sides, divide by 2 so the total isn't double  the real-world value */
-		//masterConfig.primaryPID.selectedFeedbackCoefficient = 0.5;
-	 }
-	
 }    

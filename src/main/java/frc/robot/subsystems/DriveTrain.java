@@ -24,7 +24,6 @@ import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
 import frc.robot.Constants;
-import frc.robot.Instrumentation;
 import frc.robot.wrappers.*;
 
 public class DriveTrain extends SubsystemBase {
@@ -67,7 +66,6 @@ public class DriveTrain extends SubsystemBase {
 
         leftMaster.setName("Left");
         rightMaster.setName("Right");
-        gyro.setName("Gyro");
 
         leftFollower.configFactoryDefault();
         leftFollower.follow(leftMaster);
@@ -191,9 +189,9 @@ public class DriveTrain extends SubsystemBase {
     /** Update odometry tracker with current heading, and encoder readings */
     public void updateOdometry() {
         // need to convert to meters
-        double angle = ((getRightPos() - getLeftPos()) * (180.0 / Math.PI)) / Constants.kWidthChassisMeters;
+//        double angle = ((getRightPos() - getLeftPos()) * (180.0 / Math.PI)) / Constants.kWidthChassisMeters;
 
-        driveOdometry.update(Rotation2d.fromDegrees(angle), //getHeading(), 
+        driveOdometry.update(/*Rotation2d.fromDegrees(angle), */getHeading(), 
                              getLeftPos(), 
                              getRightPos());
     
